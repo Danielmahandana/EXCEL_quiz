@@ -1,0 +1,2092 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cell Quest — Interactive Excel Fundamentals Quiz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background-color: #FAF7F2;
+      background-image:
+        linear-gradient(to right, rgba(30, 27, 22, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30, 27, 22, 0.04) 1px, transparent 1px);
+      background-size: 36px 36px;
+      color: #1E1B16;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+    button:disabled { cursor: not-allowed; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #FF7000;
+      outline-offset: 2px;
+    }
+    .display {
+      font-family: ui-rounded, "SF Pro Rounded", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: -0.02em;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    .top-util {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+    .util-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8C8477;
+    }
+    .btn-ghost {
+      min-height: 44px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid #E8E1D5;
+      background: #FFFFFF;
+      color: #5E574D;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color 150ms, color 150ms;
+    }
+    .btn-ghost:hover { border-color: #1E1B16; color: #1E1B16; }
+
+    .btn-primary {
+      min-height: 48px;
+      padding: 12px 26px;
+      border-radius: 999px;
+      border: 2px solid #1E1B16;
+      background: #FF7000;
+      color: #1E1B16;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 3px 0 #1E1B16;
+      transition: transform 100ms, box-shadow 100ms, background-color 150ms;
+    }
+    .btn-primary:hover:not(:disabled) { background: #FF821F; }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #1E1B16;
+    }
+    .btn-primary:disabled { opacity: 0.45; }
+
+    .btn-secondary {
+      min-height: 44px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 2px solid #E8E1D5;
+      background: #FFFFFF;
+      color: #5E574D;
+      font-weight: 700;
+      font-size: 14px;
+      transition: border-color 150ms, color 150ms;
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: #1E1B16; color: #1E1B16; }
+    .btn-secondary:disabled { opacity: 0.4; }
+
+    .btn-link {
+      min-height: 44px;
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      color: #5E574D;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .btn-link:hover { color: #1E1B16; }
+
+    .card {
+      background: #FFFFFF;
+      border: 2px solid #E8E1D5;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(30, 27, 22, 0.04);
+    }
+    .formula-chip {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.92em;
+      padding: 1px 6px;
+      margin: 0 2px;
+      border-radius: 6px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      color: #1E1B16;
+      font-weight: 700;
+    }
+
+    /* Start Screen */
+    .hero-wrap { position: relative; padding-top: 52px; }
+    .hero-mascot {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      z-index: 20;
+    }
+    .speech-bubble {
+      background: #FFFFFF;
+      border: 2px solid #1E1B16;
+      border-radius: 14px 14px 14px 3px;
+      padding: 7px 13px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1E1B16;
+      box-shadow: 0 2px 0 rgba(30,27,22,0.08);
+      white-space: nowrap;
+    }
+    .hero-card { padding: 48px 24px 28px; text-align: center; }
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5E574D;
+    }
+    .mini-logo-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(2, 6px);
+      gap: 2px;
+    }
+    .mini-logo-grid span { width: 6px; height: 6px; border-radius: 1px; display: block; }
+    .hero-title {
+      margin: 12px 0 8px;
+      font-size: clamp(36px, 7vw, 50px);
+      font-weight: 900;
+      line-height: 1;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .col-bar {
+      display: inline-block;
+      width: 13px;
+      border: 2px solid #1E1B16;
+      border-radius: 3px;
+      vertical-align: bottom;
+    }
+    .hero-sub {
+      margin: 0 auto;
+      max-width: 460px;
+      color: #5E574D;
+      font-size: 16px;
+    }
+
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+    @media (max-width: 640px) {
+      .diff-grid { grid-template-columns: 1fr; }
+    }
+    .diff-btn {
+      text-align: left;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      transition: transform 150ms ease-out;
+    }
+    .diff-btn:hover, .diff-btn.selected { transform: translateY(-4px); }
+    .diff-tab {
+      align-self: flex-start;
+      padding: 5px 12px;
+      border-radius: 10px 10px 0 0;
+      border: 2px solid #E8E1D5;
+      border-bottom: none;
+      background: #FAF7F2;
+      font-size: 12px;
+      font-weight: 800;
+      color: #5E574D;
+      transition: background-color 150ms, color 150ms, border-color 150ms;
+    }
+    .diff-btn:hover .diff-tab, .diff-btn.selected .diff-tab {
+      background: #FF7000;
+      color: #1E1B16;
+      border-color: #1E1B16;
+    }
+    .diff-body {
+      width: 100%;
+      flex: 1;
+      background: #FFFFFF;
+      border: 2px solid #E8E1D5;
+      border-radius: 0 14px 14px 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(30,27,22,0.04);
+      transition: border-color 150ms, box-shadow 150ms;
+    }
+    .diff-btn:hover .diff-body, .diff-btn.selected .diff-body {
+      border-color: #1E1B16;
+      box-shadow: 0 6px 16px rgba(30,27,22,0.08);
+    }
+    .diff-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5E574D;
+    }
+    .diff-desc { font-size: 14px; color: #5E574D; margin: 4px 0 0; line-height: 1.4; }
+    .diff-foot {
+      padding-top: 8px;
+      border-top: 1px solid #E8E1D5;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .start-footer {
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .adaptive-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      max-width: 420px;
+    }
+    .adaptive-label input { width: 20px; height: 20px; margin-top: 2px; accent-color: #FF7000; cursor: pointer; }
+
+    .dot-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding-top: 6px;
+    }
+    .dot-cell {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #2E9E5B;
+      animation: cqDotPulse 1.8s ease-in-out infinite;
+    }
+
+    /* Quiz HUD */
+    .hud-bar {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+    }
+    .lives-wrap { display: flex; align-items: center; gap: 5px; }
+    .streak-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .score-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .score-num { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .score-popup {
+      position: absolute;
+      top: -8px;
+      right: 0;
+      color: #FF7000;
+      font-weight: 900;
+      font-size: 16px;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: cqFloatScore 950ms ease-out forwards;
+    }
+
+    /* Timer cells */
+    .timer-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6E675C;
+      margin-bottom: 4px;
+    }
+    .timer-cells {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 4px;
+    }
+    .timer-cell {
+      height: 10px;
+      border-radius: 3px;
+      border: 1px solid #E8E1D5;
+      transition: background-color 200ms;
+    }
+
+    /* Progress Map */
+    .progress-cells {
+      display: flex;
+      gap: 6px;
+    }
+    .progress-cell {
+      flex: 1;
+      height: 30px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #E8E1D5;
+      background: #FFFFFF;
+      color: #A69E92;
+    }
+    .progress-cell.current {
+      background: #E9F9EF;
+      color: #1E1B16;
+      border: 2.5px solid #2E9E5B;
+    }
+    .progress-cell.done-ok {
+      background: #2E9E5B;
+      color: #1E1B16;
+      border-color: #2E9E5B;
+    }
+    .progress-cell.done-bad {
+      background: #FFE4E6;
+      color: #1E1B16;
+      border-color: #FF4F58;
+    }
+    .progress-mobile { display: none; align-items: center; gap: 8px; font-size: 12px; color: #6E675C; }
+    .progress-mobile-track { flex: 1; height: 8px; border-radius: 99px; background: #E8E1D5; overflow: hidden; }
+    .progress-mobile-fill { height: 100%; background: #2E9E5B; transition: width 250ms; }
+    @media (max-width: 560px) {
+      .progress-cells { display: none; }
+      .progress-mobile { display: flex; }
+    }
+
+    /* Question Card */
+    .q-mascot-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding-left: 12px;
+      margin-bottom: -10px;
+      position: relative;
+      z-index: 20;
+    }
+    .q-card { padding: 22px; }
+    .q-card.is-correct { border-color: #2E9E5B; animation: cqPulseGreen 450ms ease-out; }
+    .q-card.is-wrong { border-color: #FF4F58; animation: cqShake 320ms ease-out; }
+    .topic-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: #EBF3FC;
+      border: 1px solid rgba(78, 143, 224, 0.45);
+      font-size: 12px;
+      font-weight: 800;
+      color: #1E1B16;
+    }
+    .q-prompt {
+      margin: 12px 0 18px;
+      font-size: clamp(19px, 3.2vw, 23px);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    /* Mini Spreadsheet Grid */
+    .grid-frame {
+      border: 2px solid #E8E1D5;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #FFFFFF;
+      margin-bottom: 18px;
+    }
+    .grid-ribbon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #FAF7F2;
+      border-bottom: 1px solid #E8E1D5;
+      font-size: 12px;
+    }
+    .name-box {
+      min-width: 54px;
+      text-align: center;
+      padding: 2px 8px;
+      background: #FFFFFF;
+      border: 1px solid #E8E1D5;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+    .fx-bar {
+      flex: 1;
+      padding: 2px 8px;
+      background: #FFFFFF;
+      border: 1px solid #E8E1D5;
+      border-radius: 4px;
+      min-height: 24px;
+    }
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      user-select: none;
+    }
+    .sheet-table th {
+      background: #F4EFE6;
+      border-bottom: 1px solid #E8E1D5;
+      border-right: 1px solid #E8E1D5;
+      padding: 6px 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #5E574D;
+    }
+    .sheet-table th:last-child, .sheet-table td:last-child { border-right: none; }
+    .sheet-table td {
+      border-bottom: 1px solid #E8E1D5;
+      border-right: 1px solid #E8E1D5;
+      padding: 0;
+    }
+    .sheet-table tr:last-child td, .sheet-table tr:last-child th { border-bottom: none; }
+    .cell-box {
+      position: relative;
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 4px;
+      border: none;
+      background: #FFFFFF;
+      color: #1E1B16;
+      font-size: 14px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 140ms;
+    }
+    button.cell-box:hover:not(:disabled) { background: #FFF4E8; }
+    .cell-box.static-active {
+      background: #E9F9EF;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 3px #2E9E5B;
+    }
+    .cell-box.shaded {
+      background: #E6F1FC;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(78, 143, 224, 0.5);
+    }
+    .cell-box.selected, .cell-box.result-ok {
+      background: #D6F5E3;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 2.5px #2E9E5B;
+    }
+    .cell-box.result-bad {
+      background: #FFE4E6;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 2.5px #FF4F58;
+    }
+    .fill-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      background: #2E9E5B;
+      border: 1px solid #FFFFFF;
+    }
+    .cell-badge {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .grid-status {
+      padding: 6px 10px;
+      background: #FAF7F2;
+      border-top: 1px solid #E8E1D5;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #5E574D;
+    }
+
+    /* Options */
+    .options-stack { display: flex; flex-direction: column; gap: 10px; }
+    .opt-btn {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 2px solid #E8E1D5;
+      background: #FFFFFF;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 140ms, background-color 140ms;
+    }
+    .opt-btn:hover:not(:disabled) { border-color: #FF7000; background: #FFF7EF; }
+    .opt-btn.opt-ok { background: #D6F5E3; border-color: #2E9E5B; font-weight: 700; }
+    .opt-btn.opt-bad { background: #FFE4E6; border-color: #FF4F58; }
+    .opt-btn.opt-dim { background: #FAF7F2; color: #8C8477; opacity: 0.72; }
+    .opt-key {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tf-btn {
+      min-height: 70px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid #E8E1D5;
+      background: #FFFFFF;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .tf-btn:hover:not(:disabled) { border-color: #FF7000; background: #FFF7EF; }
+    .tf-btn.opt-ok { background: #D6F5E3; border-color: #2E9E5B; }
+    .tf-btn.opt-bad { background: #FFE4E6; border-color: #FF4F58; }
+    .tf-btn.opt-dim { background: #FAF7F2; color: #8C8477; opacity: 0.72; }
+
+    /* Formula Builder */
+    .token-pool { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .token-chip {
+      min-width: 48px;
+      min-height: 44px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 2px solid #E8E1D5;
+      background: #FFFFFF;
+      box-shadow: 0 2px 0 #E8E1D5;
+      font-size: 16px;
+      font-weight: 800;
+      transition: transform 90ms, border-color 120ms, background-color 120ms;
+    }
+    .token-chip:hover:not(:disabled) { border-color: #FF7000; background: #FFF7EF; }
+    .token-chip:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+    .formula-tray {
+      border: 2px solid #2E9E5B;
+      border-radius: 12px;
+      background: #FAF7F2;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .tray-inner {
+      min-height: 52px;
+      border: 1px dashed #D3CBBF;
+      border-radius: 8px;
+      background: #FFFFFF;
+      padding: 8px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .placed-token {
+      min-height: 36px;
+      padding: 4px 10px;
+      border-radius: 7px;
+      border: 1.5px solid #2E9E5B;
+      background: #E9F9EF;
+      font-size: 14px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .placed-token:hover:not(:disabled) { background: #FFE4E6; border-color: #FF4F58; }
+
+    /* Order Challenge */
+    .order-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid #E8E1D5;
+      background: #FFFFFF;
+    }
+    .order-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .order-arrow {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1.5px solid #E8E1D5;
+      background: #FAF7F2;
+      font-weight: 900;
+    }
+    .order-arrow:hover:not(:disabled) { border-color: #FF7000; background: #FFF4E8; }
+    .order-arrow:disabled { opacity: 0.3; }
+
+    /* Feedback Panel */
+    .feedback-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 2px solid;
+    }
+    .feedback-box.ok { background: #E9F9EF; border-color: #2E9E5B; }
+    .feedback-box.bad { background: #FFF0F1; border-color: #FF4F58; }
+
+    /* Results & Topic Bars */
+    .topic-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 48px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 520px) {
+      .topic-row { grid-template-columns: 96px 1fr 44px; }
+    }
+    .bar-cell {
+      height: 28px;
+      border-radius: 6px;
+      background: #FAF7F2;
+      border: 1px solid #E8E1D5;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; opacity: 0.35; transition: width 500ms; }
+    .bar-edge { position: absolute; top: 0; bottom: 0; left: 0; width: 4px; }
+    .bar-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .review-row-btn {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 18px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .review-row-btn:hover { background: #FFF7EF; }
+    .review-detail {
+      padding: 6px 18px 14px 54px;
+      font-size: 14px;
+      border-top: 1px solid rgba(232, 225, 213, 0.7);
+    }
+
+    /* Confetti & Grid Wave */
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 40;
+    }
+    .confetti-sq {
+      position: absolute;
+      top: -16px;
+      animation: cqConfettiFall linear 2;
+    }
+    .grid-wave {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 4px;
+      padding: 8px;
+      z-index: 0;
+    }
+    .wave-cell {
+      background: rgba(46, 158, 91, 0.25);
+      border: 1px solid rgba(46, 158, 91, 0.3);
+      border-radius: 3px;
+      opacity: 0;
+      animation: cqGridWave 900ms ease-out forwards;
+    }
+
+    /* Keyframes */
+    .anim-enter { animation: cqCardEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .tail-flick { transform-origin: 24px 23px; animation: cqTailFlick 2s steps(2, end) infinite; }
+    .pixel-hop { animation: cqPixelHop 360ms ease-out 2; }
+    .pixel-urgent { animation: cqUrgent 260ms ease-in-out infinite; }
+    @keyframes cqCardEnter {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cqShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    @keyframes cqPulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(46, 158, 91, 0.45); }
+      100% { box-shadow: 0 0 0 14px rgba(46, 158, 91, 0); }
+    }
+    @keyframes cqFloatScore {
+      0% { opacity: 0; transform: translateY(6px) scale(0.9); }
+      20% { opacity: 1; transform: translateY(-4px) scale(1.06); }
+      100% { opacity: 0; transform: translateY(-34px) scale(1); }
+    }
+    @keyframes cqTailFlick {
+      0%, 45% { transform: rotate(0deg); }
+      50%, 95% { transform: rotate(9deg); }
+      100% { transform: rotate(0deg); }
+    }
+    @keyframes cqPixelHop {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-7px); }
+    }
+    @keyframes cqUrgent {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes cqConfettiFall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateY(105vh) rotate(520deg); opacity: 0; }
+    }
+    @keyframes cqDotPulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.85); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    @keyframes cqGridWave {
+      0% { opacity: 0; transform: scale(0.82); }
+      35% { opacity: 0.55; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="wave-root"></div>
+  <div id="confetti-root"></div>
+  <div id="app" class="container"></div>
+
+  <script>
+  (() => {
+    const DIFFICULTIES = {
+      easy: {
+        id: 'easy', name: 'Sheet Novice',
+        shortDesc: 'Relaxed pace, unlimited lives — ideal for warming up.',
+        timePerQuestion: 45, lives: Infinity, basePoints: 10, streakBonus: 0, runLength: 10
+      },
+      medium: {
+        id: 'medium', name: 'Cell Ranger',
+        shortDesc: '25s timer, 3 lives, and +5 streak bonus per combo.',
+        timePerQuestion: 25, lives: 3, basePoints: 20, streakBonus: 5, runLength: 10
+      },
+      hard: {
+        id: 'hard', name: 'Formula Master',
+        shortDesc: '15s timer, 2 lives, +10 streak bonus. One slip costs a heart.',
+        timePerQuestion: 15, lives: 2, basePoints: 30, streakBonus: 10, runLength: 9
+      }
+    };
+
+    const TOPICS = ['Workbook & Grid', 'Interface', 'Formulas', 'Functions', 'Workflow'];
+    const TOPIC_SHORT = {
+      'Workbook & Grid': 'GRID', Interface: 'INTERFACE', Formulas: 'FORMULAS', Functions: 'FUNCTIONS', Workflow: 'WORKFLOW'
+    };
+    const CORRECT_FLAVORS = [
+      'Nice, that formula slaps.', 'Clean cell work!', 'Grid tamed. Next cell!',
+      'Zero #REF! errors here.', 'Pixel approves this calculation.', 'Sharp eye on the sheet!'
+    ];
+    const WRONG_FLAVORS = [
+      'Tricky one! Let’s check the sheet.', 'Close! Even pros hit #VALUE! sometimes.',
+      'Good try — here’s the Excel rule:', 'No worries, Pixel has your back.'
+    ];
+
+    const QUESTION_BANK = [
+      // EASY (10)
+      {
+        id: 'e1', difficulty: 'easy', type: 'mcq', topic: 'Workbook & Grid',
+        prompt: 'What is the difference between a workbook and a worksheet in Excel?',
+        options: [
+          'A workbook is the whole .xlsx file; worksheets are the individual tabs inside it.',
+          'A worksheet is the whole .xlsx file; workbooks are the tabs inside it.',
+          'A workbook holds only charts, while a worksheet holds only numbers.',
+          'They are two different names for the exact same thing.'
+        ],
+        correctAnswer: 'A workbook is the whole .xlsx file; worksheets are the individual tabs inside it.',
+        explanation: 'A workbook is the entire .xlsx file, and it can contain multiple worksheet tabs along the bottom.'
+      },
+      {
+        id: 'e2', difficulty: 'easy', type: 'mcq', topic: 'Workbook & Grid',
+        prompt: 'In a well-structured dataset, how are columns and rows organized?',
+        options: [
+          'Columns run vertically (one variable each); rows run horizontally (one observation each).',
+          'Columns run horizontally (one observation each); rows run vertically (one variable each).',
+          'Columns hold only text labels; rows hold only formulas.',
+          'Columns and rows can be swapped freely without affecting formulas.'
+        ],
+        correctAnswer: 'Columns run vertically (one variable each); rows run horizontally (one observation each).',
+        explanation: 'Columns go up and down and represent variables (like Height or Score), while rows go left to right and represent individual observations.'
+      },
+      {
+        id: 'e3', difficulty: 'easy', type: 'mcq', topic: 'Workbook & Grid',
+        prompt: 'How is a cell’s coordinate address written in Excel?',
+        options: [
+          'Column letter followed by row number (e.g., C4)',
+          'Row number followed by column letter (e.g., 4C)',
+          'Worksheet name followed by row number (e.g., Sheet4)',
+          'Column number followed by row number (e.g., 3,4)'
+        ],
+        correctAnswer: 'Column letter followed by row number (e.g., C4)',
+        explanation: 'Every cell sits at the intersection of a column and a row, named with its column letter first and row number second—like C4.'
+      },
+      {
+        id: 'e4', difficulty: 'easy', type: 'mcq', topic: 'Interface',
+        prompt: 'Look at the mini-spreadsheet below. Which cell is currently the active cell?',
+        visual: {
+          activeCell: 'C2', nameBox: 'C2', formulaBar: '88',
+          cells: { A1:'ID', B1:'Group', C1:'Score', D1:'Pass', A2:'101', B2:'A', C2:'88', D2:'Yes', A3:'102', B3:'B', C3:'74', D3:'Yes', A4:'103', B4:'A', C4:'91', D4:'Yes' }
+        },
+        options: ['C2', 'B2', 'C3', '2C'],
+        correctAnswer: 'C2',
+        explanation: 'The active cell is always marked by Excel’s bold green border (and its coordinate appears in the Name Box).'
+      },
+      {
+        id: 'e5', difficulty: 'easy', type: 'cellclick', topic: 'Workbook & Grid',
+        prompt: 'Click cell C4 on the spreadsheet grid below.',
+        visual: {
+          mode: 'single',
+          cells: { A1:'Item', B1:'Qty', C1:'Cost', D1:'Note', A2:'Vial', B2:'4', C2:'12', D2:'OK', A3:'Slide', B3:'10', C3:'5', D3:'OK', A4:'Tray', B4:'2', C4:'18', D4:'New' }
+        },
+        correctAnswer: 'C4',
+        explanation: 'Column C (third column) intersecting Row 4 (fourth row) lands directly on cell C4.'
+      },
+      {
+        id: 'e6', difficulty: 'easy', type: 'mcq', topic: 'Formulas',
+        prompt: 'Which character MUST start every formula or calculation in Excel?',
+        options: ['=', '+', '#', '$'],
+        correctAnswer: '=',
+        explanation: 'Typing an equals sign (=) tells Excel to evaluate the cell as a calculation instead of plain text.'
+      },
+      {
+        id: 'e7', difficulty: 'easy', type: 'mcq', topic: 'Formulas',
+        prompt: 'Which symbols are used for multiplication and division in Excel formulas?',
+        options: [
+          '* for multiplication and / for division',
+          'x for multiplication and ÷ for division',
+          '^ for multiplication and % for division',
+          '& for multiplication and \\ for division'
+        ],
+        correctAnswer: '* for multiplication and / for division',
+        explanation: 'Excel uses the asterisk (*) to multiply and the forward slash (/) to divide.'
+      },
+      {
+        id: 'e8', difficulty: 'easy', type: 'truefalse', topic: 'Functions',
+        prompt: 'True or False: Excel has a built-in =SUBTRACT() function for subtracting cells.',
+        options: ['True', 'False'],
+        correctAnswer: 'False',
+        explanation: 'Excel has no SUBTRACT function—to subtract, simply use the minus operator, such as =A1-B1.'
+      },
+      {
+        id: 'e9', difficulty: 'easy', type: 'truefalse', topic: 'Interface',
+        prompt: 'True or False: The active cell is the cell outlined with a bold green border where your typing goes.',
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        explanation: 'The bold green border highlights the active cell—any value or formula you type is entered there.'
+      },
+      {
+        id: 'e10', difficulty: 'easy', type: 'builder', topic: 'Formulas',
+        prompt: 'Assemble a formula that adds cell A1 and cell B1 together.',
+        goalLabel: 'Add A1 and B1',
+        tokens: ['=', 'A1', '+', 'B1', '-', '*', 'SUM', '(', ')'],
+        correctAnswer: '=A1+B1',
+        explanation: 'Every calculation starts with =, followed by the cell references joined by the + operator: =A1+B1.'
+      },
+
+      // MEDIUM (11)
+      {
+        id: 'm1', difficulty: 'medium', type: 'mcq', topic: 'Interface',
+        prompt: 'You see the number 42 in cell D2. Where do you look to find out whether 42 was typed by hand or computed by a formula?',
+        options: ['The Formula Bar', 'The Name Box', 'The Sheet Tab at the bottom', 'The Column Header'],
+        correctAnswer: 'The Formula Bar',
+        explanation: 'The Formula Bar reveals the true contents behind a cell’s displayed value—showing either a raw number or the underlying formula.'
+      },
+      {
+        id: 'm2', difficulty: 'medium', type: 'mcq', topic: 'Interface',
+        prompt: 'What does the Name Box (to the left of the Formula Bar) display?',
+        options: [
+          'The coordinate address of the active cell (like B3)',
+          'The file name of the .xlsx workbook',
+          'The sum of all selected cells',
+          'The list of available Excel functions'
+        ],
+        correctAnswer: 'The coordinate address of the active cell (like B3)',
+        explanation: 'The Name Box shows the active cell’s coordinate (or named range) so you always know where you are on the grid.'
+      },
+      {
+        id: 'm3', difficulty: 'medium', type: 'mcq', topic: 'Formulas',
+        prompt: 'Which statement accurately describes the relationship between formulas and functions?',
+        options: [
+          'Every function is a formula, but not every formula uses a function.',
+          'Every formula uses a function, but not every function is a formula.',
+          'Formulas only work on text, while functions only work on numbers.',
+          'Functions do not start with an equals sign (=), whereas formulas do.'
+        ],
+        correctAnswer: 'Every function is a formula, but not every formula uses a function.',
+        explanation: 'A formula is any calculation starting with = (like =A1+B1); a function is a built-in shortcut (like =SUM(A1:B1)) used inside a formula.'
+      },
+      {
+        id: 'm4', difficulty: 'medium', type: 'mcq', topic: 'Formulas',
+        prompt: 'In the range reference A1:A5, what does the colon (:) mean?',
+        options: [
+          '"Through" — it includes A1, A5, and every cell between them.',
+          '"And only" — it includes only A1 and A5, skipping A2–A4.',
+          '"Divided by" — it divides A1 by A5.',
+          '"Compare" — it checks whether A1 equals A5.'
+        ],
+        correctAnswer: '"Through" — it includes A1, A5, and every cell between them.',
+        explanation: 'The colon means "through," defining a continuous rectangular block from the first cell to the last cell.'
+      },
+      {
+        id: 'm5', difficulty: 'medium', type: 'mcq', topic: 'Functions',
+        prompt: 'How does =AVERAGE() treat blank cells, text cells, and cells containing 0?',
+        options: [
+          'It ignores blanks and text, but INCLUDES zeros in the average.',
+          'It ignores blanks, text, AND zeros.',
+          'It treats blanks as zeros, and ignores text.',
+          'It returns an error if any blank cell is inside the range.'
+        ],
+        correctAnswer: 'It ignores blanks and text, but INCLUDES zeros in the average.',
+        explanation: 'AVERAGE skips empty cells and text, but a typed 0 is a valid number and pulls the mean downward.'
+      },
+      {
+        id: 'm6', difficulty: 'medium', type: 'mcq', topic: 'Functions',
+        prompt: 'Why are =MIN() and =MAX() especially useful right after importing a dataset?',
+        options: [
+          'They spot potential outliers and verify that values fall within expected boundaries.',
+          'They automatically delete duplicate rows from the worksheet.',
+          'They sort the entire table from smallest to largest.',
+          'They convert text values into currency formats.'
+        ],
+        correctAnswer: 'They spot potential outliers and verify that values fall within expected boundaries.',
+        explanation: 'Checking MIN and MAX quickly exposes data-entry typos (like an age of 999 or a negative height) and confirms valid boundaries.'
+      },
+      {
+        id: 'm7', difficulty: 'medium', type: 'mcq', topic: 'Workflow',
+        prompt: 'What is the recommended best practice for organizing raw data, cleaned data, and summary statistics?',
+        options: [
+          'Keep them on separate worksheets inside the same workbook.',
+          'Overwrite the raw data directly so there is only one sheet.',
+          'Save each step as a completely separate .xlsx file on your Desktop.',
+          'Put summary statistics in the middle of the raw data rows.'
+        ],
+        correctAnswer: 'Keep them on separate worksheets inside the same workbook.',
+        explanation: 'Keeping Raw, Cleaned, and Summary tabs in one workbook preserves your original data untouched while keeping the project organized.'
+      },
+      {
+        id: 'm8', difficulty: 'medium', type: 'mcq', topic: 'Workflow',
+        prompt: 'Why should you use "Format as Table" and apply proper number formats (Currency, Percentage, Date)?',
+        options: [
+          'Tables enable fast sorting and filtering, and number formats give raw numbers clear context.',
+          'Tables lock the workbook with a password so nobody can read it.',
+          'Number formats permanently round and erase the underlying decimal digits.',
+          'Tables replace all formulas with static text values.'
+        ],
+        correctAnswer: 'Tables enable fast sorting and filtering, and number formats give raw numbers clear context.',
+        explanation: 'Format as Table adds instant sort/filter controls and structured styling, while number formats clarify units without changing the true value.'
+      },
+      {
+        id: 'm9', difficulty: 'medium', type: 'cellclick', topic: 'Workbook & Grid',
+        prompt: 'Select EVERY cell covered by the range A1:B3, then click Confirm Selection.',
+        visual: {
+          mode: 'range',
+          cells: { A1:'10', B1:'20', C1:'30', D1:'40', A2:'15', B2:'25', C2:'35', D2:'45', A3:'12', B3:'22', C3:'32', D3:'42', A4:'18', B4:'28', C4:'38', D4:'48' }
+        },
+        correctAnswer: ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'],
+        explanation: 'A1:B3 spans columns A through B and rows 1 through 3—a 2×3 rectangle of 6 cells: A1, A2, A3, B1, B2, and B3.'
+      },
+      {
+        id: 'm10', difficulty: 'medium', type: 'builder', topic: 'Functions',
+        prompt: 'Build a formula to compute the mean of cells B2 through B6.',
+        goalLabel: 'Average of B2:B6',
+        tokens: ['=', 'AVERAGE', 'SUM', 'MIN', '(', ')', 'B2', ':', 'B6', ','],
+        correctAnswer: '=AVERAGE(B2:B6)',
+        explanation: 'Use =AVERAGE(B2:B6) with a colon between B2 and B6 to average every numeric cell in that range.'
+      },
+      {
+        id: 'm11', difficulty: 'medium', type: 'truefalse', topic: 'Interface',
+        prompt: 'True or False: When you click a cell showing "150", the Formula Bar might show =SUM(B2:B4) instead of 150.',
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        explanation: 'The cell displays the calculated result (150), while the Formula Bar reveals the formula (=SUM(B2:B4)) that produced it.'
+      },
+
+      // HARD (9)
+      {
+        id: 'h1', difficulty: 'hard', type: 'mcq', topic: 'Functions',
+        prompt: 'Look at the spreadsheet below. What value will =SUM(B2:B4) return?',
+        visual: {
+          shadedRange: ['B2', 'B3', 'B4'], formulaBar: '=SUM(B2:B4)', nameBox: 'B5',
+          cells: { A1:'Lab', B1:'Samples', C1:'Cost', D1:'Flag', A2:'North', B2:'12', C2:'5', D2:'0', A3:'South', B3:'18', C3:'8', D3:'1', A4:'East', B4:'10', C4:'4', D4:'0' }
+        },
+        options: ['40', '22', '30', '13.3'],
+        correctAnswer: '40',
+        explanation: 'B2:B4 includes B2 (12), B3 (18), and B4 (10). Their sum is 12 + 18 + 10 = 40.'
+      },
+      {
+        id: 'h2', difficulty: 'hard', type: 'mcq', topic: 'Functions',
+        prompt: 'Look at Row 1 below. What will =AVERAGE(A1:C1) return?',
+        visual: {
+          shadedRange: ['A1', 'B1', 'C1'], formulaBar: '=AVERAGE(A1:C1)', nameBox: 'D2',
+          cells: { A1:'10', B1:'0', C1:'20', D1:'30', A2:'5', B2:'5', C2:'5', D2:'5', A3:'', B3:'', C3:'', D3:'', A4:'', B4:'', C4:'', D4:'' }
+        },
+        options: ['10', '15', '30', '20'],
+        correctAnswer: '10',
+        explanation: 'AVERAGE includes the 0 in B1! So (10 + 0 + 20) / 3 = 10, not 15.'
+      },
+      {
+        id: 'h3', difficulty: 'hard', type: 'mcq', topic: 'Formulas',
+        prompt: 'Cell C1 contains =A1+B1, where A1 is 10 and B1 is 5 (so C1 shows 15). If you change A1 to 25, what happens to C1?',
+        options: [
+          'C1 automatically recalculates and updates to 30.',
+          'C1 stays 15 until you retype the formula.',
+          'C1 displays #REF! because A1 was modified.',
+          'C1 changes to 25 because it copies A1.'
+        ],
+        correctAnswer: 'C1 automatically recalculates and updates to 30.',
+        explanation: 'Dynamic recalculation is Excel’s superpower: formulas reference cells rather than hardcoded values, so outputs update automatically.'
+      },
+      {
+        id: 'h4', difficulty: 'hard', type: 'builder', topic: 'Functions',
+        prompt: 'Assemble the formula to calculate the total of cells B2 through B6.',
+        goalLabel: 'Total of B2:B6',
+        tokens: ['=', 'SUM', 'AVERAGE', 'MIN', 'MAX', '(', ')', 'B2', ':', 'B6', '+', '/'],
+        correctAnswer: '=SUM(B2:B6)',
+        explanation: 'Use =SUM(B2:B6) to add every value from B2 through B6 cleanly without listing each cell.'
+      },
+      {
+        id: 'h5', difficulty: 'hard', type: 'order', topic: 'Workflow',
+        prompt: 'Put the four Excel workshop workflow stages in the correct order from start to finish.',
+        items: [
+          { id: 'Structure', label: 'Structure', hint: 'Organize tabs, columns (variables), and rows (observations)' },
+          { id: 'Entry', label: 'Entry', hint: 'Input clean data, format as Table, apply number formats' },
+          { id: 'Action', label: 'Action', hint: 'Write dynamic formulas and Big Four functions' },
+          { id: 'Insight', label: 'Insight', hint: 'Spot outliers, summarize findings, and share results' }
+        ],
+        correctAnswer: ['Structure', 'Entry', 'Action', 'Insight'],
+        explanation: 'A reliable spreadsheet follows Structure → Entry → Action → Insight so your analysis is built on clean, organized data.'
+      },
+      {
+        id: 'h6', difficulty: 'hard', type: 'cellclick', topic: 'Functions',
+        prompt: 'Using =MAX(B2:D4) to hunt for a data-entry outlier, click the cell containing the maximum value.',
+        visual: {
+          mode: 'single',
+          cells: { A1:'Trial', B1:'Day 1', C1:'Day 2', D1:'Day 3', A2:'T1', B2:'24', C2:'26', D2:'25', A3:'T2', B3:'23', C3:'240', D3:'22', A4:'T3', B4:'25', C4:'24', D4:'26' }
+        },
+        correctAnswer: 'C3',
+        explanation: 'Cell C3 holds 240—ten times larger than the surrounding measurements—making it the MAX value and an obvious outlier to inspect.'
+      },
+      {
+        id: 'h7', difficulty: 'hard', type: 'truefalse', topic: 'Formulas',
+        prompt: 'True or False: In =SUM(A1:A5), the colon means Excel adds ONLY cells A1 and A5.',
+        options: ['True', 'False'],
+        correctAnswer: 'False',
+        explanation: 'The colon means "through," so A1:A5 adds A1, A2, A3, A4, and A5. (A comma, A1,A5, would select only those two cells.)'
+      },
+      {
+        id: 'h8', difficulty: 'hard', type: 'truefalse', topic: 'Functions',
+        prompt: 'True or False: The =AVERAGE() function counts cells containing 0 when computing the average.',
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        explanation: 'AVERAGE ignores blank cells and text, but 0 is a numeric value and is always included in the denominator.'
+      },
+      {
+        id: 'h9', difficulty: 'hard', type: 'truefalse', topic: 'Functions',
+        prompt: 'True or False: Because Excel has a =SUM() function, it also has a built-in =SUBTRACT() function.',
+        options: ['True', 'False'],
+        correctAnswer: 'False',
+        explanation: 'Classic trap! Excel does not have a SUBTRACT function—always use the minus sign (like =B2-C2).'
+      }
+    ];
+
+    // Helpers
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const rich = (text) => esc(text).replace(/(=(?:[A-Z]+)?\([A-Z0-9:,+\-*/]+\)|=[A-Z0-9+\-*/]+|\b[A-D][1-6]:[A-D][1-6]\b)/g, '<span class="formula-chip">$1</span>');
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const prepareQuestion = (q) => {
+      if (q.type === 'mcq' && q.options) return { ...q, options: shuffle(q.options) };
+      if (q.type === 'builder' && q.tokens) return { ...q, tokens: shuffle(q.tokens) };
+      if (q.type === 'order' && q.items) {
+        const s = shuffle(q.items);
+        if (s.every((x, i) => x.id === q.correctAnswer[i])) [s[0], s[1]] = [s[1], s[0]];
+        return { ...q, items: s };
+      }
+      return { ...q };
+    };
+    const buildDeck = (diff) => shuffle(QUESTION_BANK.filter((q) => q.difficulty === diff)).slice(0, DIFFICULTIES[diff].runLength).map(prepareQuestion);
+    const nextTier = (tier, d) => {
+      const ord = ['easy', 'medium', 'hard'];
+      return ord[Math.max(0, Math.min(2, ord.indexOf(tier) + d))];
+    };
+    const fmtAns = (a) => Array.isArray(a) ? a.join(', ') : (a === null || a === undefined || a === '' ? '(No answer — timed out)' : String(a));
+
+    // Web Audio (muted by default)
+    let audioCtx = null;
+    const getAudio = () => {
+      if (!state.soundEnabled) return null;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx;
+    };
+    const sfxClick = () => {
+      const ctx = getAudio(); if (!ctx) return;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(520, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.045);
+      g.gain.setValueAtTime(0.08, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.055);
+    };
+    const sfxCorrect = () => {
+      const ctx = getAudio(); if (!ctx) return;
+      [523.25, 659.25].forEach((f, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + i * 0.09;
+        o.type = 'sine'; o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.11, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.19);
+      });
+    };
+    const sfxWrong = () => {
+      const ctx = getAudio(); if (!ctx) return;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(210, ctx.currentTime); o.frequency.linearRampToValueAtTime(155, ctx.currentTime + 0.16);
+      g.gain.setValueAtTime(0.07, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.19);
+    };
+
+    // SVG Generators
+    function pixelCatSVG(mood, size, streak, urgent, medalTier) {
+      const shades = mood === 'celebrating' && streak >= 3;
+      const mc = { gold: { m: '#FFB800', r: '#D98A00', s: '#FFF3B0' }, silver: { m: '#CBD5E1', r: '#64748B', s: '#F8FAFC' }, bronze: { m: '#D97745', r: '#9A4B22', s: '#FBD3B6' } }[medalTier || 'gold'];
+      const cls = mood === 'celebrating' ? 'pixel-hop' : (urgent && mood === 'thinking' ? 'pixel-urgent' : '');
+      if (mood === 'dramatic') {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true" class="${cls}" style="flex-shrink:0">
+          <rect x="2" y="22" width="4" height="2" fill="#FF7000"/><rect x="1" y="20" width="2" height="2" fill="#FF7000"/>
+          <rect x="6" y="18" width="16" height="9" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/>
+          <rect x="11" y="18" width="1" height="9" fill="#E8E1D5"/><rect x="16" y="18" width="1" height="9" fill="#E8E1D5"/><rect x="6" y="22" width="16" height="1" fill="#E8E1D5"/>
+          <rect x="19" y="15" width="10" height="10" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/>
+          <rect x="20" y="16" width="4" height="3" fill="#FF7000"/>
+          <rect x="19" y="12" width="3" height="3" fill="#FF7000" stroke="#1E1B16" stroke-width="1"/>
+          <rect x="26" y="12" width="3" height="3" fill="#FFFFFF" stroke="#2E9E5B" stroke-width="1.2"/>
+          <rect x="21" y="19" width="2" height="1" fill="#1E1B16"/><rect x="25" y="19" width="2" height="1" fill="#1E1B16"/>
+          <rect x="26" y="21" width="2" height="2" fill="#4E8FE0"/>
+          <rect x="9" y="6" width="11" height="7" fill="#FFFFFF" stroke="#1E1B16" stroke-width="1"/>
+          <rect x="14" y="13" width="1" height="5" fill="#1E1B16"/>
+          <rect x="11" y="8" width="7" height="1" fill="#FF7000"/><rect x="11" y="10" width="5" height="1" fill="#1E1B16"/>
+        </svg>`;
+      }
+      const ears = mood === 'sympathetic'
+        ? `<rect x="6" y="10" width="3" height="3" fill="#FF7000" stroke="#1E1B16" stroke-width="1"/><rect x="23" y="10" width="3" height="3" fill="#FFFFFF" stroke="#2E9E5B" stroke-width="1.2"/>`
+        : `<rect x="8" y="4" width="4" height="4" fill="#FF7000" stroke="#1E1B16" stroke-width="1"/><rect x="20" y="4" width="4" height="4" fill="#FFFFFF" stroke="#2E9E5B" stroke-width="1.2"/><rect x="23" y="7" width="1.5" height="1.5" fill="#2E9E5B"/>`;
+      const eyes = shades
+        ? `<rect x="9" y="12" width="6" height="3" fill="#1E1B16"/><rect x="17" y="12" width="6" height="3" fill="#1E1B16"/><rect x="15" y="13" width="2" height="1" fill="#1E1B16"/><rect x="10" y="13" width="2" height="1" fill="#4E8FE0"/><rect x="18" y="13" width="2" height="1" fill="#4E8FE0"/>`
+        : (mood === 'celebrating' || mood === 'cheering')
+        ? `<rect x="11" y="12" width="2" height="1" fill="#1E1B16"/><rect x="10" y="13" width="1" height="1" fill="#1E1B16"/><rect x="13" y="13" width="1" height="1" fill="#1E1B16"/><rect x="19" y="12" width="2" height="1" fill="#1E1B16"/><rect x="18" y="13" width="1" height="1" fill="#1E1B16"/><rect x="21" y="13" width="1" height="1" fill="#1E1B16"/>`
+        : mood === 'sympathetic'
+        ? `<rect x="11" y="13" width="2" height="2" fill="#1E1B16"/><rect x="19" y="13" width="2" height="2" fill="#1E1B16"/><rect x="10" y="12" width="2" height="1" fill="#4E8FE0"/><rect x="20" y="12" width="2" height="1" fill="#4E8FE0"/>`
+        : `<rect x="11" y="12" width="2" height="3" fill="#1E1B16"/><rect x="19" y="12" width="2" height="3" fill="#1E1B16"/><rect x="11" y="12" width="1" height="1" fill="#FFFFFF"/><rect x="19" y="12" width="1" height="1" fill="#FFFFFF"/>`;
+      const mouth = mood === 'sympathetic'
+        ? `<rect x="14" y="17" width="4" height="1" fill="#1E1B16"/>`
+        : `<rect x="14" y="16" width="1" height="1" fill="#1E1B16"/><rect x="17" y="16" width="1" height="1" fill="#1E1B16"/><rect x="15" y="17" width="2" height="1" fill="#1E1B16"/>`;
+      let prop = '';
+      if (mood === 'waving') prop = `<rect x="5" y="15" width="3" height="5" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/><rect x="5" y="14" width="3" height="2" fill="#FF7000"/>`;
+      if (mood === 'celebrating') prop = `<rect x="5" y="13" width="3" height="5" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/><rect x="24" y="13" width="3" height="5" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/><rect x="3" y="6" width="2" height="2" fill="#FF7000"/><rect x="27" y="5" width="2" height="2" fill="#2E9E5B"/><rect x="15" y="1" width="2" height="2" fill="#4E8FE0"/>`;
+      if (mood === 'cheering') prop = `<rect x="4" y="14" width="4" height="5" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/><rect x="3" y="4" width="2" height="4" fill="#FF4F58"/><rect x="5" y="4" width="2" height="4" fill="#4E8FE0"/><rect x="2" y="7" width="6" height="6" fill="${mc.m}" stroke="${mc.r}" stroke-width="1"/><rect x="4" y="9" width="2" height="2" fill="${mc.s}"/>`;
+      if (mood === 'thinking' && urgent) prop = `<rect x="27" y="4" width="2" height="5" fill="#FF4F58"/><rect x="27" y="10" width="2" height="2" fill="#FF4F58"/>`;
+      return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true" class="${cls}" style="flex-shrink:0">
+        <g class="tail-flick"><rect x="24" y="21" width="3" height="2" fill="#FF7000"/><rect x="26" y="18" width="2" height="4" fill="#FF7000"/><rect x="25" y="16" width="2" height="2" fill="#1E1B16"/></g>
+        <rect x="9" y="18" width="14" height="10" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/>
+        <rect x="13" y="19" width="1" height="8" fill="#E8E1D5"/><rect x="18" y="19" width="1" height="8" fill="#E8E1D5"/><rect x="10" y="22" width="12" height="1" fill="#E8E1D5"/><rect x="10" y="25" width="12" height="1" fill="#E8E1D5"/>
+        <rect x="10" y="19" width="3" height="3" fill="#FF7000"/>
+        <rect x="10" y="28" width="4" height="2" fill="#1E1B16"/><rect x="18" y="28" width="4" height="2" fill="#1E1B16"/>
+        <rect x="8" y="8" width="16" height="11" fill="#FFFDF9" stroke="#1E1B16" stroke-width="1"/>
+        <rect x="9" y="9" width="5" height="3" fill="#FF7000"/>
+        ${ears}${eyes}<rect x="15" y="15" width="2" height="1" fill="#FF7000"/>${mouth}${prop}
+      </svg>`;
+    }
+
+    const heartSVG = (alive) => `<svg width="22" height="20" viewBox="0 0 11 10" shape-rendering="crispEdges" aria-hidden="true" style="opacity:${alive?1:0.38}"><path d="M2 0h2v1h1v1h1V1h1V0h2v1h1v1h1v3h-1v1H9v1H8v1H7v1H6v1H5V9H4V8H3V7H2V6H1V5H0V2h1V1h1V0z" fill="${alive?'#FF4F58':'#C5BDB0'}"/>${alive?'<rect x="2" y="2" width="1" height="1" fill="#FFD1D4"/>':''}</svg>`;
+
+    const flameSVG = (streak) => {
+      const hot = streak >= 3;
+      const sc = streak === 0 ? 0.9 : Math.min(1.25, 1 + streak * 0.06);
+      return `<svg width="22" height="24" viewBox="0 0 12 14" shape-rendering="crispEdges" aria-hidden="true" style="transform:scale(${sc})"><path d="M5 0h2v2h1v2h2v2h1v4h-1v2H9v1H3v-1H2v-2H1V6h1V4h1V3h1V2h1V0z" fill="${streak===0?'#D8D1C5':hot?'#FF7000':'#2E9E5B'}"/>${streak>0?`<path d="M5 5h2v2h1v3H7v1H5v-1H4V7h1V5z" fill="${hot?'#FFD166':'#8CE0AB'}"/>`:''}${hot?'<rect x="4" y="8" width="1" height="1" fill="#1E1B16"/><rect x="7" y="8" width="1" height="1" fill="#1E1B16"/><rect x="5" y="10" width="2" height="1" fill="#1E1B16"/>':''}</svg>`;
+    };
+
+    const medalSVG = (tier) => {
+      const p = {
+        gold: { a:'#FF7000', b:'#2E9E5B', m:'#FFB800', r:'#C97B00', i:'#FFE58F', l:'GOLD' },
+        silver: { a:'#4E8FE0', b:'#2E9E5B', m:'#CBD5E1', r:'#64748B', i:'#F1F5F9', l:'SILVER' },
+        bronze: { a:'#FF7000', b:'#4E8FE0', m:'#D97745', r:'#9A4B22', i:'#FAD2B8', l:'BRONZE' }
+      }[tier];
+      return `<svg width="88" height="96" viewBox="0 0 88 96" role="img" aria-label="${p.l} medal">
+        <polygon points="24,4 42,4 46,38 30,38" fill="${p.a}" stroke="#1E1B16" stroke-width="2.5"/>
+        <polygon points="46,4 64,4 58,38 42,38" fill="${p.b}" stroke="#1E1B16" stroke-width="2.5"/>
+        <circle cx="44" cy="60" r="28" fill="${p.m}" stroke="#1E1B16" stroke-width="3"/>
+        <circle cx="44" cy="60" r="21" fill="${p.i}" stroke="${p.r}" stroke-width="2"/>
+        <rect x="33" y="49" width="22" height="22" rx="2" fill="#FFFFFF" stroke="#1E1B16" stroke-width="2"/>
+        <line x1="40" y1="49" x2="40" y2="71" stroke="#E8E1D5" stroke-width="1.5"/>
+        <line x1="48" y1="49" x2="48" y2="71" stroke="#E8E1D5" stroke-width="1.5"/>
+        <line x1="33" y1="56" x2="55" y2="56" stroke="#E8E1D5" stroke-width="1.5"/>
+        <line x1="33" y1="63" x2="55" y2="63" stroke="#E8E1D5" stroke-width="1.5"/>
+        <rect x="40" y="56" width="8" height="7" fill="#2E9E5B" fill-opacity="0.25" stroke="#2E9E5B" stroke-width="2"/>
+      </svg>`;
+    };
+
+    // Core State
+    const state = {
+      screen: 'start',
+      difficulty: 'easy',
+      adaptive: false,
+      soundEnabled: false,
+      currentTier: 'easy',
+      consecutiveCorrect: 0,
+      consecutiveWrong: 0,
+      deck: [],
+      askedIds: [],
+      index: 0,
+      score: 0,
+      streak: 0,
+      bestStreak: 0,
+      lives: Infinity,
+      timeLeft: 45,
+      answered: null,
+      answers: [],
+      topicStats: {},
+      selectedCells: [],
+      tray: [],
+      orderList: [],
+      expandedReview: {},
+      scorePopup: null
+    };
+
+    let timerHandle = null;
+    let dragFromIdx = null;
+
+    function clearTimer() {
+      if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+    }
+
+    function startTimer() {
+      clearTimer();
+      timerHandle = setInterval(() => {
+        if (state.screen !== 'quiz' || state.answered) { clearTimer(); return; }
+        if (state.timeLeft <= 1) {
+          state.timeLeft = 0;
+          submitAnswer(null, true);
+        } else {
+          state.timeLeft = Math.max(0, state.timeLeft - 1);
+          updateTimerDOM();
+        }
+      }, 1000);
+    }
+
+    function resetQuestionInputs() {
+      const q = state.deck[state.index];
+      state.selectedCells = [];
+      state.tray = [];
+      state.orderList = q && q.items ? [...q.items] : [];
+    }
+
+    function startGame(diff) {
+      const d = diff || state.difficulty;
+      const cfg = DIFFICULTIES[d];
+      state.screen = 'quiz';
+      state.difficulty = d;
+      state.currentTier = d;
+      state.consecutiveCorrect = 0;
+      state.consecutiveWrong = 0;
+      state.deck = buildDeck(d);
+      state.askedIds = state.deck.length ? [state.deck[0].id] : [];
+      state.index = 0;
+      state.score = 0;
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.lives = cfg.lives;
+      state.timeLeft = cfg.timePerQuestion;
+      state.answered = null;
+      state.answers = [];
+      state.topicStats = {};
+      state.expandedReview = {};
+      state.scorePopup = null;
+      document.getElementById('wave-root').innerHTML = '';
+      document.getElementById('confetti-root').innerHTML = '';
+      resetQuestionInputs();
+      render();
+      startTimer();
+    }
+
+    function evaluateAnswer(q, userAnswer) {
+      if (userAnswer === null || userAnswer === undefined) return false;
+      if (q.type === 'cellclick') {
+        if (Array.isArray(q.correctAnswer)) {
+          return Array.isArray(userAnswer) && [...q.correctAnswer].sort().join(',') === [...userAnswer].sort().join(',');
+        }
+        return String(userAnswer).toUpperCase() === String(q.correctAnswer).toUpperCase();
+      }
+      if (q.type === 'builder') {
+        const clean = (s) => String(s).replace(/\s+/g, '').toUpperCase();
+        return clean(userAnswer) === clean(q.correctAnswer);
+      }
+      if (q.type === 'order') {
+        return Array.isArray(userAnswer) && userAnswer.length === q.correctAnswer.length && userAnswer.every((v, i) => v === q.correctAnswer[i]);
+      }
+      return String(userAnswer) === String(q.correctAnswer);
+    }
+
+    function submitAnswer(userAnswer, timedOut = false) {
+      if (state.screen !== 'quiz' || state.answered) return;
+      clearTimer();
+      const q = state.deck[state.index];
+      const cfg = DIFFICULTIES[state.difficulty];
+      const isCorrect = !timedOut && evaluateAnswer(q, userAnswer);
+      const newStreak = isCorrect ? state.streak + 1 : 0;
+      state.streak = newStreak;
+      state.bestStreak = Math.max(state.bestStreak, newStreak);
+      const streakBonus = isCorrect && newStreak > 1 ? cfg.streakBonus * (newStreak - 1) : 0;
+      const pointsEarned = isCorrect ? cfg.basePoints + streakBonus : 0;
+      state.score += pointsEarned;
+      if (!isCorrect && Number.isFinite(state.lives)) state.lives = Math.max(0, state.lives - 1);
+
+      if (state.adaptive) {
+        if (isCorrect) {
+          state.consecutiveCorrect++; state.consecutiveWrong = 0;
+          if (state.consecutiveCorrect >= 2) { state.currentTier = nextTier(state.currentTier, 1); state.consecutiveCorrect = 0; }
+        } else {
+          state.consecutiveWrong++; state.consecutiveCorrect = 0;
+          if (state.consecutiveWrong >= 2) { state.currentTier = nextTier(state.currentTier, -1); state.consecutiveWrong = 0; }
+        }
+      }
+
+      const prevT = state.topicStats[q.topic] || { correct: 0, total: 0 };
+      state.topicStats[q.topic] = { correct: prevT.correct + (isCorrect ? 1 : 0), total: prevT.total + 1 };
+
+      const pool = isCorrect ? CORRECT_FLAVORS : WRONG_FLAVORS;
+      const flavorText = timedOut ? 'Time’s up! That timer moves fast.' : pool[(state.index + state.score) % pool.length];
+
+      state.answered = { isCorrect, timedOut, userAnswer, pointsEarned, streakBonus, flavorText };
+      state.answers.push({ question: q, userAnswer, isCorrect, timedOut, pointsEarned });
+      state.scorePopup = isCorrect ? { id: Date.now(), points: pointsEarned, bonus: streakBonus } : null;
+
+      if (isCorrect) sfxCorrect(); else sfxWrong();
+      render();
+    }
+
+    function nextQuestion() {
+      if (state.screen !== 'quiz' || !state.answered) return;
+      const cfg = DIFFICULTIES[state.difficulty];
+      if (Number.isFinite(state.lives) && state.lives <= 0) {
+        state.screen = 'gameover';
+        state.answered = null;
+        render();
+        return;
+      }
+      const nextIdx = state.index + 1;
+      if (nextIdx >= state.deck.length) {
+        state.screen = 'results';
+        state.answered = null;
+        render();
+        triggerResultsCelebration();
+        return;
+      }
+      if (state.adaptive && state.deck[nextIdx].difficulty !== state.currentTier) {
+        const used = new Set([...state.askedIds, ...state.deck.slice(0, nextIdx).map((x) => x.id)]);
+        const cands = QUESTION_BANK.filter((q) => q.difficulty === state.currentTier && !used.has(q.id));
+        if (cands.length) state.deck[nextIdx] = prepareQuestion(cands[Math.floor(Math.random() * cands.length)]);
+      }
+      state.askedIds.push(state.deck[nextIdx].id);
+      state.index = nextIdx;
+      state.timeLeft = cfg.timePerQuestion;
+      state.answered = null;
+      state.scorePopup = null;
+      resetQuestionInputs();
+      render();
+      startTimer();
+    }
+
+    function updateTimerDOM() {
+      const cfg = DIFFICULTIES[state.difficulty];
+      const ratio = state.timeLeft / cfg.timePerQuestion;
+      const filled = Math.ceil(ratio * 12);
+      const color = state.timeLeft <= 5 ? '#FF4F58' : ratio <= 0.45 ? '#F59E0B' : '#2E9E5B';
+      const lbl = document.getElementById('timer-label');
+      if (lbl) {
+        lbl.textContent = `${state.timeLeft}s left`;
+        lbl.style.color = state.timeLeft <= 5 ? '#FF4F58' : '#1E1B16';
+      }
+      const cells = document.querySelectorAll('.timer-cell');
+      cells.forEach((c, i) => { c.style.backgroundColor = i < filled ? color : '#F1ECE2'; });
+      if (state.timeLeft === 5) render(); // show urgent mascot pose
+    }
+
+    function triggerResultsCelebration() {
+      // Signature background grid wave
+      const waveRoot = document.getElementById('wave-root');
+      let cellsHtml = '<div class="grid-wave" aria-hidden="true">';
+      for (let i = 0; i < 80; i++) {
+        const delay = ((i % 10) + Math.floor(i / 10)) * 45;
+        cellsHtml += `<div class="wave-cell" style="animation-delay:${delay}ms"></div>`;
+      }
+      cellsHtml += '</div>';
+      waveRoot.innerHTML = cellsHtml;
+
+      // Confetti if >= 70%
+      const total = state.answers.length;
+      const correct = state.answers.filter((a) => a.isCorrect).length;
+      const pct = total ? Math.round((correct / total) * 100) : 0;
+      const confRoot = document.getElementById('confetti-root');
+      if (pct >= 70) {
+        const colors = ['#FF7000', '#2E9E5B', '#4E8FE0', '#FF4F58', '#FFB800'];
+        let html = '<div class="confetti-layer" aria-hidden="true">';
+        for (let i = 0; i < 42; i++) {
+          const left = ((i * 2.4 + (i % 7) * 3) % 98).toFixed(1);
+          const delay = ((i % 10) * 0.14).toFixed(2);
+          const dur = (2.2 + (i % 5) * 0.45).toFixed(2);
+          const sz = 7 + (i % 3) * 3;
+          html += `<span class="confetti-sq" style="left:${left}%;width:${sz}px;height:${sz}px;background:${colors[i%5]};animation-delay:${delay}s;animation-duration:${dur}s"></span>`;
+        }
+        html += '</div>';
+        confRoot.innerHTML = html;
+      }
+
+      // Score count-up animation
+      const scoreEl = document.getElementById('results-score-num');
+      if (!scoreEl || state.score === 0) return;
+      const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduced) { scoreEl.textContent = state.score; return; }
+      const start = performance.now();
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / 700);
+        scoreEl.textContent = Math.round(state.score * (1 - Math.pow(1 - t, 3)));
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    function renderMiniGrid(q) {
+      const v = q.visual;
+      const interactive = q.type === 'cellclick';
+      const disabled = Boolean(state.answered);
+      const shaded = new Set(v.shadedRange || []);
+      const selected = new Set(state.selectedCells);
+      const correctSet = new Set(Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer]);
+      const nb = state.selectedCells.length === 1 ? state.selectedCells[0] : (state.selectedCells.length > 1 ? `${state.selectedCells.length} cells` : (v.nameBox || v.activeCell || 'A1'));
+      const fb = v.formulaBar !== undefined ? v.formulaBar : (state.selectedCells.length === 1 ? (v.cells[state.selectedCells[0]] || '') : '');
+      const cols = ['A', 'B', 'C', 'D'], rows = [1, 2, 3, 4];
+
+      let tbody = '';
+      for (const r of rows) {
+        tbody += `<tr><th scope="row" class="mono">${r}</th>`;
+        for (const c of cols) {
+          const coord = c + r;
+          const val = v.cells[coord] || '';
+          const isStaticActive = v.activeCell === coord;
+          const isSel = selected.has(coord);
+          const isOk = disabled && correctSet.has(coord);
+          const isBad = disabled && isSel && !correctSet.has(coord);
+          let cls = 'cell-box mono';
+          if (isBad) cls += ' result-bad';
+          else if (isOk) cls += ' result-ok';
+          else if (isSel) cls += ' selected';
+          else if (isStaticActive) cls += ' static-active';
+          else if (shaded.has(coord)) cls += ' shaded';
+          const extra = (isStaticActive || (isSel && !isBad)) ? '<span class="fill-handle" aria-hidden="true"></span>' : '';
+          const mark = isBad ? '<span class="cell-badge" style="color:#FF4F58">✗</span>' : (isOk ? '<span class="cell-badge" style="color:#2E9E5B">✓</span>' : '');
+          if (interactive) {
+            tbody += `<td><button type="button" class="${cls}" data-cell="${coord}" ${disabled?'disabled':''} aria-label="Cell ${coord}${val?', value '+val:''}" aria-pressed="${isSel}">${esc(val)}${extra}${mark}</button></td>`;
+          } else {
+            tbody += `<td><div class="${cls}">${esc(val)}${extra}</div></td>`;
+          }
+        }
+        tbody += '</tr>';
+      }
+
+      const rangeFooter = interactive && v.mode === 'range' && !disabled
+        ? `<div class="grid-status"><span>Click cells to toggle them in your range.</span><span class="mono" style="font-weight:700;color:#1E1B16">${state.selectedCells.length ? [...state.selectedCells].sort().join(', ') : 'None selected'}</span></div>`
+        : '';
+
+      return `<div class="grid-frame">
+        <div class="grid-ribbon mono">
+          <div class="name-box">${esc(nb)}</div>
+          <span style="color:#8C8477;font-family:Georgia,serif;font-style:italic;font-weight:700">fx</span>
+          <div class="fx-bar">${fb ? esc(fb) : '<span style="color:#B5AEA2">—</span>'}</div>
+        </div>
+        <table class="sheet-table" role="grid" aria-label="Mini spreadsheet grid">
+          <thead><tr><th style="width:40px"></th>${cols.map((c) => `<th scope="col" class="mono">${c}</th>`).join('')}</tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>
+        ${rangeFooter}
+      </div>`;
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      const cfg = DIFFICULTIES[state.difficulty];
+
+      const topBar = `<div class="top-util">
+        ${state.screen !== 'start'
+          ? `<button type="button" class="btn-ghost" id="btn-home">← Cell Quest</button>`
+          : `<span class="util-label mono">Demystifying Data · Excel Workshop</span>`}
+        <button type="button" class="btn-ghost mono" id="btn-sound" aria-pressed="${state.soundEnabled}">
+          <span aria-hidden="true">${state.soundEnabled ? '🔊' : '🔇'}</span>
+          <span>${state.soundEnabled ? 'Sound On' : 'Sound Off'}</span>
+        </button>
+      </div>`;
+
+      if (state.screen === 'start') {
+        const diffCards = Object.values(DIFFICULTIES).map((d) => {
+          const sel = state.difficulty === d.id;
+          return `<button type="button" class="diff-btn ${sel ? 'selected' : ''}" data-diff="${d.id}" aria-pressed="${sel}">
+            <div class="diff-tab mono">${d.name}</div>
+            <div class="diff-body">
+              <div>
+                <div class="diff-meta mono"><span>⏱ ${d.timePerQuestion}s</span><span>${Number.isFinite(d.lives) ? '♥ × ' + d.lives : '∞ lives'}</span></div>
+                <p class="diff-desc">${d.shortDesc}</p>
+              </div>
+              <div class="diff-foot mono">
+                <span style="color:#1E1B16">+${d.basePoints} pts</span>
+                <span style="color:#2E9E5B">${d.streakBonus > 0 ? '+' + d.streakBonus + ' streak' : 'No penalty'}</span>
+              </div>
+            </div>
+          </button>`;
+        }).join('');
+
+        const dots = Array.from({ length: 10 }, (_, i) => `<span class="dot-cell" style="animation-delay:${i*150}ms"></span>`).join('');
+
+        app.innerHTML = `${topBar}
+          <div class="anim-enter" style="display:flex;flex-direction:column;gap:22px">
+            <div class="hero-wrap">
+              <div class="hero-mascot">
+                ${pixelCatSVG('waving', 88, 0, false)}
+                <div class="speech-bubble">Ready to tame the grid?</div>
+              </div>
+              <div class="card hero-card">
+                <div class="pill-tag mono">
+                  <span class="mini-logo-grid" aria-hidden="true">
+                    <span style="background:#2E9E5B"></span><span style="background:#E8E1D5"></span>
+                    <span style="background:#E8E1D5"></span><span style="background:#FF7000"></span>
+                  </span>
+                  INTERACTIVE EXCEL QUIZ
+                </div>
+                <div>
+                  <h1 class="display hero-title">
+                    <span>CE</span>
+                    <span aria-label="LL" style="display:inline-flex;align-items:flex-end;gap:4px;margin:0 2px">
+                      <span class="col-bar" style="height:34px;background:#2E9E5B"></span>
+                      <span class="col-bar" style="height:44px;background:#FF7000"></span>
+                    </span>
+                    <span style="margin-left:6px">QUEST</span>
+                  </h1>
+                </div>
+                <p class="hero-sub">A playful quiz about Excel fundamentals — workbooks, coordinates, formulas, and the Big Four functions.</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="mono" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#6E675C">Choose your worksheet difficulty</div>
+              <div class="diff-grid">${diffCards}</div>
+            </div>
+
+            <div class="card start-footer">
+              <label class="adaptive-label">
+                <input type="checkbox" id="chk-adaptive" ${state.adaptive ? 'checked' : ''} />
+                <div>
+                  <div style="font-size:14px;font-weight:800">Adaptive difficulty <span class="mono" style="font-size:11px;color:#4E8FE0">BETA</span></div>
+                  <div style="font-size:12px;color:#6E675C">2 right in a row steps up a tier; 2 misses in a row eases back down.</div>
+                </div>
+              </label>
+              <button type="button" class="btn-primary" id="btn-start">Start Quest →</button>
+            </div>
+
+            <div class="dot-row" aria-hidden="true">${dots}</div>
+          </div>`;
+      } else if (state.screen === 'quiz') {
+        const q = state.deck[state.index];
+        const ratio = state.timeLeft / cfg.timePerQuestion;
+        const filled = Math.ceil(ratio * 12);
+        const tColor = state.timeLeft <= 5 ? '#FF4F58' : ratio <= 0.45 ? '#F59E0B' : '#2E9E5B';
+        const mood = state.answered ? (state.answered.isCorrect ? 'celebrating' : 'sympathetic') : 'thinking';
+        const speech = state.answered
+          ? state.answered.flavorText
+          : state.timeLeft <= 5
+          ? 'Hurry — timer’s almost out!'
+          : state.streak >= 3
+          ? `${state.streak} in a row! Shades on!`
+          : q.type === 'builder'
+          ? `Make: ${q.goalLabel}`
+          : q.type === 'cellclick'
+          ? 'Click directly on the grid!'
+          : 'Hmm, check the coordinates…';
+
+        const livesHtml = Number.isFinite(cfg.lives)
+          ? Array.from({ length: cfg.lives }, (_, i) => heartSVG(i < state.lives)).join('')
+          : `<span class="mono" style="display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:#2E9E5B">${heartSVG(true)} ∞</span>`;
+
+        const timerCells = Array.from({ length: 12 }, (_, i) =>
+          `<div class="timer-cell" style="background:${i < filled ? tColor : '#F1ECE2'}"></div>`
+        ).join('');
+
+        const progressCells = state.deck.map((dq, i) => {
+          const past = state.answers[i];
+          const cls = i === state.index ? 'current' : past ? (past.isCorrect ? 'done-ok' : 'done-bad') : '';
+          const txt = past ? (past.isCorrect ? '✓' : '✗') : `${String.fromCharCode(65 + (i % 26))}${i + 1}`;
+          return `<div class="progress-cell mono ${cls}">${txt}</div>`;
+        }).join('');
+
+        let answerArea = '';
+        if (q.type === 'mcq') {
+          answerArea = `<div class="options-stack">
+            ${q.options.map((opt, idx) => {
+              const picked = state.answered && state.answered.userAnswer === opt;
+              const isOk = opt === q.correctAnswer;
+              let cls = 'opt-btn';
+              if (state.answered) cls += isOk ? ' opt-ok' : (picked ? ' opt-bad' : ' opt-dim');
+              const icon = state.answered && isOk ? '<span style="color:#2E9E5B;font-weight:900">✓</span>' : (state.answered && picked ? '<span style="color:#FF4F58;font-weight:900">✗</span>' : '');
+              return `<button type="button" class="${cls}" data-opt-idx="${idx}" ${state.answered ? 'disabled' : ''}>
+                <span class="opt-key mono">${idx + 1}</span>
+                <span style="flex:1">${rich(opt)}</span>
+                ${icon}
+              </button>`;
+            }).join('')}
+            ${!state.answered ? '<div class="mono" style="font-size:12px;color:#8C8477;padding-top:4px">Tip: press keys 1–4 or A–D to answer.</div>' : ''}
+          </div>`;
+        } else if (q.type === 'truefalse') {
+          answerArea = `<div class="tf-grid">
+            ${['True', 'False'].map((opt, idx) => {
+              const picked = state.answered && state.answered.userAnswer === opt;
+              const isOk = opt === q.correctAnswer;
+              let cls = 'tf-btn';
+              if (state.answered) cls += isOk ? ' opt-ok' : (picked ? ' opt-bad' : ' opt-dim');
+              return `<button type="button" class="${cls}" data-tf="${opt}" ${state.answered ? 'disabled' : ''}>
+                <span aria-hidden="true">${opt === 'True' ? '✓' : '✗'}</span>
+                <span>${opt}</span>
+                <span class="mono" style="font-size:11px;color:#8C8477">Key ${idx + 1} / ${opt[0]}</span>
+              </button>`;
+            }).join('')}
+          </div>`;
+        } else if (q.type === 'cellclick' && q.visual.mode === 'range' && !state.answered) {
+          answerArea = `<div style="display:flex;gap:10px;align-items:center">
+            <button type="button" class="btn-secondary" id="btn-clear-cells" ${state.selectedCells.length ? '' : 'disabled'}>Clear</button>
+            <button type="button" class="btn-primary" style="flex:1" id="btn-confirm-cells" ${state.selectedCells.length ? '' : 'disabled'}>Confirm Selection (${state.selectedCells.length} ${state.selectedCells.length === 1 ? 'cell' : 'cells'})</button>
+          </div>`;
+        } else if (q.type === 'builder') {
+          const assembled = state.tray.map((t) => t.tok).join('');
+          answerArea = `<div>
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:8px;background:#EBF3FC;border:1px solid rgba(78,143,224,0.45);font-size:14px;margin-bottom:12px">
+              <span class="mono" style="font-size:11px;font-weight:800;color:#2463B5">GOAL</span>
+              <strong>${esc(q.goalLabel)}</strong>
+            </div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6E675C;margin-bottom:8px">Click tokens to assemble your formula:</div>
+            <div class="token-pool">
+              ${q.tokens.map((tok, idx) => `<button type="button" class="token-chip mono" data-tok-idx="${idx}" ${state.answered ? 'disabled' : ''}>${esc(tok)}</button>`).join('')}
+            </div>
+            <div class="formula-tray">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-family:Georgia,serif;font-style:italic;font-weight:800;color:#2E9E5B">fx</span>
+                <span class="mono" style="font-size:12px;color:#6E675C">Formula tray (click any token to remove)</span>
+              </div>
+              <div class="tray-inner">
+                ${state.tray.length === 0
+                  ? '<span class="mono" style="font-size:14px;color:#A69E92">Your formula will appear here…</span>'
+                  : state.tray.map((t, pos) => `<button type="button" class="placed-token mono" data-remove-pos="${pos}" ${state.answered ? 'disabled' : ''}>${esc(t.tok)}${!state.answered ? ' <span style="color:#6E675C;font-size:12px">×</span>' : ''}</button>`).join('')}
+              </div>
+              ${assembled ? `<div class="mono" style="margin-top:8px;font-size:12px;color:#5E574D">Preview: <strong style="color:#1E1B16">${esc(assembled)}</strong></div>` : ''}
+            </div>
+            ${!state.answered ? `<div style="display:flex;gap:10px;align-items:center">
+              <button type="button" class="btn-secondary" id="btn-clear-tray" ${state.tray.length ? '' : 'disabled'}>Clear</button>
+              <button type="button" class="btn-primary" style="flex:1" id="btn-check-formula" ${state.tray.length ? '' : 'disabled'}>Check Formula</button>
+            </div>` : ''}
+          </div>`;
+        } else if (q.type === 'order') {
+          answerArea = `<div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6E675C">Drag rows or use the arrow buttons to arrange stages 1 → 4:</div>
+            ${state.orderList.map((item, idx) => `<div class="order-item" draggable="${!state.answered}" data-order-idx="${idx}">
+              <span class="order-num mono">${idx + 1}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:800">${esc(item.label)}</div>
+                <div style="font-size:12px;color:#6E675C">${esc(item.hint)}</div>
+              </div>
+              ${!state.answered ? `<div style="display:flex;gap:6px">
+                <button type="button" class="order-arrow" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} aria-label="Move ${esc(item.label)} up">↑</button>
+                <button type="button" class="order-arrow" data-move-down="${idx}" ${idx === state.orderList.length - 1 ? 'disabled' : ''} aria-label="Move ${esc(item.label)} down">↓</button>
+              </div>` : ''}
+            </div>`).join('')}
+            ${!state.answered ? '<button type="button" class="btn-primary" style="width:100%" id="btn-check-order">Check Order</button>' : ''}
+          </div>`;
+        }
+
+        const feedbackHtml = state.answered ? `<div class="feedback-box anim-enter ${state.answered.isCorrect ? 'ok' : 'bad'}" role="status" aria-live="polite">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:900">
+              <span style="width:24px;height:24px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;background:${state.answered.isCorrect ? '#2E9E5B' : '#FF4F58'};color:${state.answered.isCorrect ? '#1E1B16' : '#FFFFFF'}">${state.answered.isCorrect ? '✓' : '✗'}</span>
+              <span>${state.answered.isCorrect ? 'Correct!' : (state.answered.timedOut ? 'Time ran out!' : 'Not quite!')}</span>
+            </div>
+            ${state.answered.pointsEarned > 0 ? `<span class="mono" style="font-size:13px;font-weight:900;padding:2px 10px;border-radius:99px;background:#FFFFFF;border:1px solid #2E9E5B">+${state.answered.pointsEarned} pts</span>` : ''}
+          </div>
+          ${!state.answered.isCorrect ? `<div style="font-size:14px;margin-bottom:6px"><strong>Correct answer: </strong><span class="formula-chip">${esc(fmtAns(q.correctAnswer))}</span></div>` : ''}
+          <p style="margin:0 0 14px;font-size:15px">${rich(q.explanation)}</p>
+          <button type="button" class="btn-primary" style="width:100%" id="btn-next">${Number.isFinite(state.lives) && state.lives <= 0 ? 'See Summary →' : (state.index + 1 >= state.deck.length ? 'View Results →' : 'Next Question → (Enter)')}</button>
+        </div>` : '';
+
+        app.innerHTML = `${topBar}
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card hud-bar">
+              <div class="lives-wrap">${livesHtml}</div>
+              <div class="streak-pill mono">${flameSVG(state.streak)} <span>${state.streak}</span> <span style="font-weight:500;color:#6E675C;font-size:12px">streak</span></div>
+              <div class="score-wrap">
+                <span class="mono" style="font-size:12px;color:#8C8477">PTS</span>
+                <span class="display score-num">${state.score}</span>
+                ${state.scorePopup ? `<div class="score-popup mono">+${state.scorePopup.points}${state.scorePopup.bonus > 0 ? ' (+' + state.scorePopup.bonus + '🔥)' : ''}</div>` : ''}
+              </div>
+            </div>
+
+            <div>
+              <div class="timer-meta mono">
+                <span>${cfg.name}${state.adaptive ? ' · Adaptive (' + state.currentTier.toUpperCase() + ')' : ''}</span>
+                <strong id="timer-label" style="color:${state.timeLeft <= 5 ? '#FF4F58' : '#1E1B16'}">${state.timeLeft}s left</strong>
+              </div>
+              <div class="timer-cells" role="progressbar" aria-valuemin="0" aria-valuemax="${cfg.timePerQuestion}" aria-valuenow="${state.timeLeft}">${timerCells}</div>
+            </div>
+
+            <div>
+              <div class="progress-cells">${progressCells}</div>
+              <div class="progress-mobile mono">
+                <span>Q${state.index + 1}/${state.deck.length}</span>
+                <div class="progress-mobile-track"><div class="progress-mobile-fill" style="width:${((state.index + 1) / state.deck.length) * 100}%"></div></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="q-mascot-row">
+                ${pixelCatSVG(mood, 68, state.streak, !state.answered && state.timeLeft <= 5)}
+                <div class="speech-bubble" style="margin-bottom:12px;white-space:normal;max-width:340px">${esc(speech)}</div>
+              </div>
+              <div class="card q-card anim-enter ${state.answered ? (state.answered.isCorrect ? 'is-correct' : 'is-wrong') : ''}">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                  <span class="topic-chip mono">${TOPIC_SHORT[q.topic] || q.topic}</span>
+                  <span class="mono" style="font-size:12px;color:#8C8477">Question ${state.index + 1} of ${state.deck.length}</span>
+                </div>
+                <h2 class="display q-prompt">${rich(q.prompt)}</h2>
+                ${q.visual ? renderMiniGrid(q) : ''}
+                ${answerArea}
+                ${feedbackHtml}
+              </div>
+            </div>
+          </div>`;
+      } else if (state.screen === 'gameover') {
+        const total = state.answers.length;
+        const ok = state.answers.filter((a) => a.isCorrect).length;
+        app.innerHTML = `${topBar}
+          <div class="anim-enter" style="max-width:500px;margin:28px auto 0;text-align:center">
+            <div style="display:flex;justify-content:center;margin-bottom:-14px;position:relative;z-index:10">${pixelCatSVG('dramatic', 104, 0, false)}</div>
+            <div class="card" style="padding:30px 24px;border-color:#1E1B16;transform:rotate(-1deg)">
+              <span class="mono" style="display:inline-block;padding:4px 12px;border-radius:99px;background:#FFE4E6;font-size:12px;font-weight:800">#REF! · NO HEARTS LEFT</span>
+              <h1 class="display" style="margin:12px 0 8px;font-size:36px;font-weight:900">Out of lives!</h1>
+              <p style="color:#5E574D;margin:0 0 20px">You scored <strong class="mono" style="color:#1E1B16">${state.score} pts</strong> across ${total} ${total === 1 ? 'question' : 'questions'} (${ok} correct).</p>
+              <button type="button" class="btn-primary" style="width:100%" id="btn-retry">Retry ${cfg.name} →</button>
+              <div style="margin-top:8px"><button type="button" class="btn-link" id="btn-change-diff">Change difficulty</button></div>
+              <p class="mono" style="margin:14px 0 0;font-size:12px;color:#8C8477">Every spreadsheet pro has hit #REF! at least once.</p>
+            </div>
+          </div>`;
+      } else if (state.screen === 'results') {
+        const total = state.answers.length;
+        const ok = state.answers.filter((a) => a.isCorrect).length;
+        const pct = total ? Math.round((ok / total) * 100) : 0;
+        const tier = pct >= 85 ? 'gold' : pct >= 60 ? 'silver' : 'bronze';
+        const medalLabel = tier === 'gold' ? 'Gold Spreadsheet Master' : tier === 'silver' ? 'Silver Grid Navigator' : 'Bronze Cell Explorer';
+
+        const topicRows = TOPICS.map((t) => {
+          const st = state.topicStats[t];
+          if (!st || st.total === 0) return '';
+          const tp = Math.round((st.correct / st.total) * 100);
+          const col = tp >= 70 ? '#2E9E5B' : '#F59E0B';
+          return `<div class="topic-row">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0">
+              <span class="topic-chip mono" style="font-size:11px;padding:2px 7px">${TOPIC_SHORT[t]}</span>
+            </div>
+            <div class="bar-cell">
+              <div class="bar-fill" style="width:${tp}%;background:${col}"></div>
+              <div class="bar-edge" style="background:${col}"></div>
+              <span class="bar-pct mono">${tp}%</span>
+            </div>
+            <div class="mono" style="text-align:right;font-size:12px;font-weight:800;color:#5E574D">${st.correct}/${st.total}</div>
+          </div>`;
+        }).join('');
+
+        const allOpen = state.answers.length > 0 && state.answers.every((_, idx) => state.expandedReview[idx]);
+        const reviewRows = state.answers.map((entry, idx) => {
+          const open = Boolean(state.expandedReview[idx]);
+          return `<div style="background:${idx % 2 === 0 ? '#FFFFFF' : 'rgba(250,247,242,0.65)'};border-top:${idx === 0 ? 'none' : '1px solid #E8E1D5'}">
+            <button type="button" class="review-row-btn" data-rev-idx="${idx}" aria-expanded="${open}">
+              <span class="mono" style="font-size:12px;color:#8C8477;width:24px">${idx + 1}.</span>
+              <span style="width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;background:${entry.isCorrect ? '#D6F5E3' : '#FFE4E6'};border:1px solid ${entry.isCorrect ? '#2E9E5B' : '#FF4F58'}">${entry.isCorrect ? '✓' : '✗'}</span>
+              <span style="flex:1;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(entry.question.prompt)}</span>
+              <span class="mono" style="font-size:12px;color:#8C8477">${open ? '▲' : '▼'}</span>
+            </button>
+            ${open ? `<div class="review-detail">
+              <div style="margin-bottom:4px"><strong style="color:#5E574D">Your answer: </strong><span class="mono">${esc(fmtAns(entry.userAnswer))}</span></div>
+              <div style="margin-bottom:6px"><strong style="color:#5E574D">Correct answer: </strong><strong class="mono">${esc(fmtAns(entry.question.correctAnswer))}</strong></div>
+              <div style="color:#5E574D">${rich(entry.question.explanation)}</div>
+            </div>` : ''}
+          </div>`;
+        }).join('');
+
+        app.innerHTML = `${topBar}
+          <div class="anim-enter" style="display:flex;flex-direction:column;gap:20px">
+            <div class="card" style="padding:28px 22px;text-align:center">
+              <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px">
+                ${pixelCatSVG('cheering', 94, 0, false, tier)}
+                ${medalSVG(tier)}
+              </div>
+              <span class="pill-tag mono">${cfg.name} · ${medalLabel}</span>
+              <div class="display" style="font-size:52px;font-weight:900;line-height:1.1;margin:10px 0 4px">
+                <span id="results-score-num">${state.score}</span> <span style="font-size:24px;color:#FF7000">pts</span>
+              </div>
+              <p style="margin:0 0 18px;color:#5E574D">
+                <strong style="color:#1E1B16">${ok} / ${total}</strong> correct (${pct}%) · Best streak: <strong class="mono" style="color:#1E1B16">${state.bestStreak}</strong>
+              </p>
+              <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px">
+                <button type="button" class="btn-primary" id="btn-play-again">Play Again →</button>
+                <button type="button" class="btn-link" id="btn-change-diff">Change difficulty</button>
+              </div>
+            </div>
+
+            <div class="card" style="padding:20px 22px">
+              <h2 class="display" style="margin:0 0 14px;font-size:20px;font-weight:900">Topic Breakdown</h2>
+              ${topicRows}
+            </div>
+
+            <div class="card" style="overflow:hidden">
+              <div style="padding:14px 18px;background:#FAF7F2;border-bottom:1px solid #E8E1D5;display:flex;align-items:center;justify-content:space-between">
+                <h2 class="display" style="margin:0;font-size:20px;font-weight:900">Review Answers</h2>
+                <button type="button" class="btn-ghost mono" style="min-height:36px;font-size:12px" id="btn-toggle-all">${allOpen ? 'Collapse all' : 'Expand all'}</button>
+              </div>
+              <div>${reviewRows}</div>
+            </div>
+          </div>`;
+      }
+
+      bindEvents();
+    }
+
+    function bindEvents() {
+      const byId = (id) => document.getElementById(id);
+      if (byId('btn-home')) byId('btn-home').onclick = () => { sfxClick(); clearTimer(); state.screen = 'start'; document.getElementById('wave-root').innerHTML = ''; document.getElementById('confetti-root').innerHTML = ''; render(); };
+      if (byId('btn-sound')) byId('btn-sound').onclick = () => { state.soundEnabled = !state.soundEnabled; if (state.soundEnabled) sfxClick(); render(); };
+      if (byId('btn-start')) byId('btn-start').onclick = () => { sfxClick(); startGame(state.difficulty); };
+      if (byId('chk-adaptive')) byId('chk-adaptive').onchange = () => { sfxClick(); state.adaptive = !state.adaptive; };
+      if (byId('btn-next')) byId('btn-next').onclick = () => { sfxClick(); nextQuestion(); };
+      if (byId('btn-retry')) byId('btn-retry').onclick = () => { sfxClick(); startGame(state.difficulty); };
+      if (byId('btn-play-again')) byId('btn-play-again').onclick = () => { sfxClick(); startGame(state.difficulty); };
+      if (byId('btn-change-diff')) byId('btn-change-diff').onclick = () => { sfxClick(); clearTimer(); state.screen = 'start'; document.getElementById('wave-root').innerHTML = ''; document.getElementById('confetti-root').innerHTML = ''; render(); };
+
+      document.querySelectorAll('[data-diff]').forEach((el) => {
+        el.onclick = () => { sfxClick(); state.difficulty = el.dataset.diff; render(); };
+      });
+
+      const q = state.deck[state.index];
+      document.querySelectorAll('[data-opt-idx]').forEach((el) => {
+        el.onclick = () => submitAnswer(q.options[Number(el.dataset.optIdx)]);
+      });
+      document.querySelectorAll('[data-tf]').forEach((el) => {
+        el.onclick = () => submitAnswer(el.dataset.tf);
+      });
+      document.querySelectorAll('[data-cell]').forEach((el) => {
+        el.onclick = () => {
+          if (state.answered) return;
+          sfxClick();
+          const coord = el.dataset.cell;
+          if (q.visual.mode === 'single') {
+            state.selectedCells = [coord];
+            submitAnswer(coord);
+          } else {
+            state.selectedCells = state.selectedCells.includes(coord)
+              ? state.selectedCells.filter((c) => c !== coord)
+              : [...state.selectedCells, coord];
+            render();
+          }
+        };
+      });
+      if (byId('btn-clear-cells')) byId('btn-clear-cells').onclick = () => { sfxClick(); state.selectedCells = []; render(); };
+      if (byId('btn-confirm-cells')) byId('btn-confirm-cells').onclick = () => submitAnswer([...state.selectedCells]);
+
+      document.querySelectorAll('[data-tok-idx]').forEach((el) => {
+        el.onclick = () => {
+          if (state.answered) return;
+          sfxClick();
+          const tok = q.tokens[Number(el.dataset.tokIdx)];
+          state.tray.push({ tok });
+          render();
+        };
+      });
+      document.querySelectorAll('[data-remove-pos]').forEach((el) => {
+        el.onclick = () => {
+          if (state.answered) return;
+          sfxClick();
+          state.tray.splice(Number(el.dataset.removePos), 1);
+          render();
+        };
+      });
+      if (byId('btn-clear-tray')) byId('btn-clear-tray').onclick = () => { sfxClick(); state.tray = []; render(); };
+      if (byId('btn-check-formula')) byId('btn-check-formula').onclick = () => submitAnswer(state.tray.map((t) => t.tok).join(''));
+
+      document.querySelectorAll('[data-move-up]').forEach((el) => {
+        el.onclick = () => {
+          const i = Number(el.dataset.moveUp);
+          if (i > 0) { sfxClick(); [state.orderList[i - 1], state.orderList[i]] = [state.orderList[i], state.orderList[i - 1]]; render(); }
+        };
+      });
+      document.querySelectorAll('[data-move-down]').forEach((el) => {
+        el.onclick = () => {
+          const i = Number(el.dataset.moveDown);
+          if (i < state.orderList.length - 1) { sfxClick(); [state.orderList[i + 1], state.orderList[i]] = [state.orderList[i], state.orderList[i + 1]]; render(); }
+        };
+      });
+      document.querySelectorAll('[data-order-idx]').forEach((el) => {
+        el.ondragstart = () => { dragFromIdx = Number(el.dataset.orderIdx); };
+        el.ondragover = (e) => e.preventDefault();
+        el.ondrop = () => {
+          const to = Number(el.dataset.orderIdx);
+          if (dragFromIdx !== null && dragFromIdx !== to) {
+            sfxClick();
+            const [m] = state.orderList.splice(dragFromIdx, 1);
+            state.orderList.splice(to, 0, m);
+            dragFromIdx = null;
+            render();
+          }
+        };
+      });
+      if (byId('btn-check-order')) byId('btn-check-order').onclick = () => submitAnswer(state.orderList.map((x) => x.id));
+
+      document.querySelectorAll('[data-rev-idx]').forEach((el) => {
+        el.onclick = () => {
+          const i = Number(el.dataset.revIdx);
+          state.expandedReview[i] = !state.expandedReview[i];
+          render();
+        };
+      });
+      if (byId('btn-toggle-all')) byId('btn-toggle-all').onclick = () => {
+        const allOpen = state.answers.every((_, idx) => state.expandedReview[idx]);
+        state.expandedReview = {};
+        if (!allOpen) state.answers.forEach((_, idx) => { state.expandedReview[idx] = true; });
+        render();
+      };
+    }
+
+    // Keyboard support: 1-4 / A-D to answer, Enter for Next
+    window.addEventListener('keydown', (e) => {
+      if (state.screen !== 'quiz') return;
+      if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      const q = state.deck[state.index];
+      if (!q) return;
+      if (state.answered) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sfxClick(); nextQuestion(); }
+        return;
+      }
+      if (q.type === 'mcq') {
+        const map = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 };
+        const idx = map[e.key.toLowerCase()];
+        if (idx !== undefined && q.options[idx] !== undefined) { e.preventDefault(); submitAnswer(q.options[idx]); }
+      } else if (q.type === 'truefalse') {
+        const k = e.key.toLowerCase();
+        if (k === '1' || k === 't') { e.preventDefault(); submitAnswer('True'); }
+        else if (k === '2' || k === 'f') { e.preventDefault(); submitAnswer('False'); }
+      }
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>
