@@ -23,7 +23,7 @@ const DIFFICULTIES = {
     name: 'Cell Ranger',
     shortDesc: '25s timer, 3 lives, and +5 streak bonus per combo.',
     timePerQuestion: 25,
-    lives: 3,
+    lives: Infinity,
     basePoints: 20,
     streakBonus: 5,
     badgeColor: '#4E8FE0',
@@ -553,6 +553,42 @@ function getNextTier(tier, delta) {
   const idx = order.indexOf(tier);
   const next = Math.max(0, Math.min(order.length - 1, idx + delta));
   return order[next];
+}
+
+function selectAdaptiveQuestion(askedIds, targetTier, topicStats, lastType) {
+  const askedSet = new Set(askedIds);
+  const unseen = QUESTION_BANK.filter((q) => !askedSet.has(q.id));
+  if (unseen.length === 0) return null;
+
+  const tierOrder = ['easy', 'medium', 'hard'];
+  const targetIdx = tierOrder.indexOf(targetTier);
+
+  const weights = unseen.map((q) => {
+    const qIdx = tierOrder.indexOf(q.difficulty);
+    const tierDist = Math.abs(qIdx - targetIdx);
+    const tierWeight = tierDist === 0 ? 4.0 : tierDist === 1 ? 1.5 : 0.4;
+
+    const stats = topicStats[q.topic];
+    let topicWeight = 1.0;
+    if (!stats) {
+      topicWeight = 1.6; // Encourage unseen topics for variety
+    } else if (stats.total > stats.correct) {
+      topicWeight = 2.2; // Reinforce topics where the user missed a question
+    } else {
+      topicWeight = 0.8; // Slightly down-weight mastered topics
+    }
+
+    const typeWeight = lastType && q.type === lastType ? 0.7 : 1.0;
+    return tierWeight * topicWeight * typeWeight;
+  });
+
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  let r = Math.random() * totalWeight;
+  for (let i = 0; i < unseen.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return prepareQuestion(unseen[i]);
+  }
+  return prepareQuestion(unseen[unseen.length - 1]);
 }
 
 function formatAnswerForDisplay(ans) {
@@ -1348,9 +1384,9 @@ function PixelConfetti() {
 function createInitialState() {
   return {
     screen: 'start', // 'start' | 'quiz' | 'gameover' | 'results'
-    difficulty: 'easy',
-    adaptive: false,
-    currentTier: 'easy',
+    difficulty: 'medium',
+    adaptive: true,
+    currentTier: 'medium',
     consecutiveCorrect: 0,
     consecutiveWrong: 0,
     deck: [],
@@ -1360,7 +1396,7 @@ function createInitialState() {
     streak: 0,
     bestStreak: 0,
     lives: Infinity,
-    timeLeft: 45,
+    timeLeft: 25,
     answered: null, // { isCorrect, timedOut, userAnswer, pointsEarned, streakBonus, flavorText }
     answers: [],
     topicStats: {},
@@ -1444,19 +1480,12 @@ function gameReducer(state, action) {
       const pointsEarned = isCorrect ? cfg.basePoints + streakBonus : 0;
       const newLives = isCorrect || !Number.isFinite(state.lives) ? state.lives : Math.max(0, state.lives - 1);
 
-      // Adaptive difficulty tracking
-      let nextTier = state.currentTier;
-      let consecutiveCorrect = isCorrect ? state.consecutiveCorrect + 1 : 0;
-      let consecutiveWrong = !isCorrect ? state.consecutiveWrong + 1 : 0;
-      if (state.adaptive) {
-        if (consecutiveCorrect >= 2) {
-          nextTier = getNextTier(state.currentTier, 1);
-          consecutiveCorrect = 0;
-        } else if (consecutiveWrong >= 2) {
-          nextTier = getNextTier(state.currentTier, -1);
-          consecutiveWrong = 0;
-        }
-      }
+      // Adaptive difficulty tracking: step up on correct, step down on miss
+      const nextTier = isCorrect
+        ? getNextTier(state.currentTier, 1)
+        : getNextTier(state.currentTier, -1);
+      const consecutiveCorrect = isCorrect ? state.consecutiveCorrect + 1 : 0;
+      const consecutiveWrong = !isCorrect ? state.consecutiveWrong + 1 : 0;
 
       const prevTopic = state.topicStats[q.topic] || { correct: 0, total: 0 };
       const topicStats = {
@@ -1515,19 +1544,19 @@ function gameReducer(state, action) {
         return { ...state, screen: 'results', answered: null, scorePopup: null };
       }
 
-      // If adaptive mode shifted tier, try swapping the upcoming slot with an unseen question from currentTier
+      // Dynamically select the next question based on currentTier, topicStats, and last question type
       let nextDeck = state.deck;
-      let nextAskedIds = [...state.askedIds];
-      if (state.adaptive && state.deck[nextIndex].difficulty !== state.currentTier) {
-        const usedIds = new Set([...state.askedIds, ...state.deck.slice(0, nextIndex).map((x) => x.id)]);
-        const candidates = QUESTION_BANK.filter(
-          (q) => q.difficulty === state.currentTier && !usedIds.has(q.id)
-        );
-        if (candidates.length > 0) {
-          const picked = prepareQuestion(candidates[Math.floor(Math.random() * candidates.length)]);
-          nextDeck = [...state.deck];
-          nextDeck[nextIndex] = picked;
-        }
+      const nextAskedIds = [...state.askedIds];
+      const lastType = state.deck[state.index]?.type;
+      const adaptivePick = selectAdaptiveQuestion(
+        nextAskedIds,
+        state.currentTier,
+        state.topicStats,
+        lastType
+      );
+      if (adaptivePick) {
+        nextDeck = [...state.deck];
+        nextDeck[nextIndex] = adaptivePick;
       }
       nextAskedIds.push(nextDeck[nextIndex].id);
 
@@ -1566,6 +1595,56 @@ export default function CellQuest() {
 
   const currentQuestion = state.deck[state.index] || null;
   const diffConfig = DIFFICULTIES[state.difficulty];
+  const [integrityFlags, setIntegrityFlags] = useState({ count: 0, lastReason: '' });
+
+  // Reset integrity flags when returning to start
+  useEffect(() => {
+    if (state.screen === 'start') {
+      setIntegrityFlags({ count: 0, lastReason: '' });
+    }
+  }, [state.screen]);
+
+  // Anti-AI / Integrity Guard: detect & block copy, right-click, and tab-switch during quiz
+  useEffect(() => {
+    if (state.screen !== 'quiz') return undefined;
+
+    const flag = (reason) => {
+      setIntegrityFlags((prev) => ({ count: prev.count + 1, lastReason: reason }));
+    };
+
+    const onCopyOrCut = (e) => {
+      e.preventDefault();
+      flag('Copy/cut attempt blocked');
+    };
+    const onContextMenu = (e) => {
+      e.preventDefault();
+      flag('Right-click disabled during quiz');
+    };
+    const onVisibility = () => {
+      if (document.hidden) flag('Tab switch detected');
+    };
+    const onKeyDown = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if ((mod && (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A')) || e.key === 'PrintScreen') {
+        e.preventDefault();
+        flag('Copy/screenshot shortcut blocked');
+      }
+    };
+
+    document.addEventListener('copy', onCopyOrCut);
+    document.addEventListener('cut', onCopyOrCut);
+    document.addEventListener('contextmenu', onContextMenu);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('copy', onCopyOrCut);
+      document.removeEventListener('cut', onCopyOrCut);
+      document.removeEventListener('contextmenu', onContextMenu);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [state.screen]);
 
   // Reset cell selection whenever question changes
   useEffect(() => {
@@ -1697,20 +1776,29 @@ export default function CellQuest() {
       : 'sympathetic'
     : 'thinking';
 
+  const PIXEL_JOKES = [
+    "I'd tell you an Excel joke, but it's a bit too cell-fish.",
+    'You + Excel = a match made in A1.',
+    "Don't worry, #REF! happens to the best of us.",
+    'No pressure—just 1,048,576 rows cheering you on.',
+    'Careful, =SUM() is watching your every move.',
+    'Even PivotTables started out as messy raw data!',
+    'Are you a VLOOKUP? Because you just found my attention.',
+    'Keep calm and remember to start with =.',
+    'My favorite exercise? Running =COUNT() on treats.',
+    'You’re doing great—no #VALUE! errors in sight!',
+  ];
+
   const mascotSpeech = state.answered
     ? state.answered.flavorText
     : state.timeLeft <= 5
     ? 'Hurry — timer’s almost out!'
     : state.streak >= 3
-    ? `${state.streak} in a row! Shades on!`
-    : currentQuestion?.type === 'builder'
-    ? `Make: ${currentQuestion.goalLabel}`
-    : currentQuestion?.type === 'cellclick'
-    ? 'Click directly on the grid!'
-    : 'Hmm, check the coordinates…';
+    ? `${state.streak} in a row! ${PIXEL_JOKES[state.index % PIXEL_JOKES.length]}`
+    : PIXEL_JOKES[(state.index + (currentQuestion?.id?.length || 0)) % PIXEL_JOKES.length];
 
   return (
-    <div className="cq-root min-h-screen text-[#1E1B16] relative overflow-x-hidden">
+    <div className="cq-root min-h-dvh overflow-y-auto overflow-x-hidden text-[#1E1B16] relative flex flex-col">
       <style>{`
         .cq-root {
           background-color: #FAF7F2;
@@ -1725,6 +1813,18 @@ export default function CellQuest() {
         .cq-display {
           font-family: ui-rounded, "SF Pro Rounded", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
           letter-spacing: -0.02em;
+        }
+        @keyframes cq-cat-bounce {
+          0% { transform: translateY(8px) scale(0.92); opacity: 0; }
+          60% { transform: translateY(-4px) scale(1.04); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes cq-cat-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .cq-cat-enter {
+          animation: cq-cat-bounce 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards, cq-cat-float 2.8s ease-in-out 0.35s infinite;
         }
         .cq-root button:focus-visible {
           outline: 3px solid #FF7000;
@@ -1844,9 +1944,9 @@ export default function CellQuest() {
       )}
 
       {/* Main Centered Container */}
-      <div className="relative z-10 max-w-3xl mx-auto px-4 py-6 sm:py-10">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 flex-1 flex flex-col justify-center">
         {/* Global utility bar (Sound toggle + Home link when in game) */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2 shrink-0">
           {state.screen !== 'start' ? (
             <button
               type="button"
@@ -1917,90 +2017,16 @@ export default function CellQuest() {
               </div>
             </div>
 
-            {/* Difficulty Cards (mini worksheet tabs) */}
-            <div>
-              <h2 className="text-xs font-mono uppercase tracking-wider font-bold text-[#6E675C] mb-3">
-                Choose your worksheet difficulty
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {Object.values(DIFFICULTIES).map((d) => {
-                  const selected = state.difficulty === d.id;
-                  return (
-                    <button
-                      key={d.id}
-                      type="button"
-                      onClick={() => {
-                        playClick();
-                        dispatch({ type: 'SELECT_DIFFICULTY', difficulty: d.id });
-                      }}
-                      aria-pressed={selected}
-                      className={`group text-left rounded-2xl transition-all duration-150 cursor-pointer flex flex-col ${
-                        selected
-                          ? '-translate-y-1 shadow-md'
-                          : 'hover:-translate-y-1 hover:shadow-md'
-                      }`}
-                    >
-                      {/* Worksheet Tab */}
-                      <div
-                        className={`self-start px-3.5 py-1 rounded-t-xl border-2 border-b-0 font-mono text-xs font-bold transition-colors ${
-                          selected
-                            ? 'bg-[#FF7000] text-[#1E1B16] border-[#1E1B16]'
-                            : 'bg-[#FAF7F2] text-[#5E574D] border-[#E8E1D5] group-hover:bg-[#FF7000] group-hover:text-[#1E1B16] group-hover:border-[#1E1B16]'
-                        }`}
-                      >
-                        {d.name}
-                      </div>
-
-                      {/* Card Body */}
-                      <div
-                        className={`w-full flex-1 p-4 rounded-b-2xl rounded-tr-2xl bg-white border-2 transition-colors flex flex-col justify-between gap-3 ${
-                          selected ? 'border-[#1E1B16]' : 'border-[#E8E1D5] group-hover:border-[#1E1B16]'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between text-xs font-mono font-bold text-[#5E574D] mb-2">
-                            <span>⏱ {d.timePerQuestion}s</span>
-                            <span>
-                              {Number.isFinite(d.lives) ? `♥ × ${d.lives}` : '∞ lives'}
-                            </span>
-                          </div>
-                          <p className="text-sm text-[#5E574D] leading-snug">{d.shortDesc}</p>
-                        </div>
-
-                        <div className="pt-2 border-t border-[#E8E1D5] flex items-center justify-between text-xs font-mono">
-                          <span className="font-bold text-[#1E1B16]">+{d.basePoints} pts</span>
-                          <span className="text-[#2E9E5B] font-bold">
-                            {d.streakBonus > 0 ? `+${d.streakBonus} streak` : 'No penalty'}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Adaptive Hardness Stretch Toggle + Start Button */}
-            <div className="bg-white rounded-2xl border-2 border-[#E8E1D5] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <label className="flex items-start gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={state.adaptive}
-                  onChange={() => {
-                    playClick();
-                    dispatch({ type: 'TOGGLE_ADAPTIVE' });
-                  }}
-                  className="mt-1 w-5 h-5 accent-[#FF7000] rounded cursor-pointer"
-                />
-                <div>
-                  <div className="text-sm font-bold text-[#1E1B16]">
-                    Adaptive difficulty <span className="font-mono text-xs text-[#4E8FE0] ml-1">BETA</span>
-                  </div>
-                  <div className="text-xs text-[#6E675C]">
-                    2 right in a row steps up a tier; 2 misses in a row eases back down.
-                  </div>
+            {/* Single Quiz Launch Card */}
+            <div className="bg-white rounded-2xl border-2 border-[#E8E1D5] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <div className="text-sm font-bold text-[#1E1B16]">
+                  10 Questions · Standard Quest
                 </div>
-              </label>
+                <div className="text-xs font-mono text-[#6E675C] mt-0.5">
+                  ⏱ 25s per question · All 10 questions · +20 pts base
+                </div>
+              </div>
 
               <button
                 type="button"
@@ -2031,9 +2057,22 @@ export default function CellQuest() {
         {/* SCREEN 2: QUIZ LOOP                                              */}
         {/* ================================================================ */}
         {state.screen === 'quiz' && currentQuestion && (
-          <div className="space-y-4">
+          <div className="space-y-2 select-none">
+            {integrityFlags.count > 0 && (
+              <div
+                role="alert"
+                className="px-3.5 py-2 rounded-xl bg-[#FFF0F1] border-2 border-[#FF4F58] text-xs sm:text-sm font-bold text-[#1E1B16] flex items-center justify-between gap-2"
+              >
+                <span>
+                  ⚠️ AI / Integrity Guard: {integrityFlags.lastReason}. Please solve without external tools.
+                </span>
+                <span className="font-mono text-xs px-2 py-0.5 rounded-md bg-[#FF4F58] text-white shrink-0">
+                  Flags: {integrityFlags.count}
+                </span>
+              </div>
+            )}
             {/* Top HUD Bar: Lives | Streak | Score */}
-            <div className="bg-white rounded-2xl border-2 border-[#E8E1D5] px-4 py-3 flex items-center justify-between gap-3 relative">
+            <div className="bg-white rounded-2xl border-2 border-[#E8E1D5] px-3.5 py-2 flex items-center justify-between gap-3 relative">
               {/* Lives */}
               <div className="flex items-center gap-1.5" aria-label={`Lives: ${Number.isFinite(state.lives) ? state.lives : 'Unlimited'}`}>
                 {Number.isFinite(diffConfig.lives) ? (
@@ -2121,7 +2160,7 @@ export default function CellQuest() {
                   return (
                     <div
                       key={q.id}
-                      className={`flex-1 h-8 rounded-md font-mono text-xs font-bold flex items-center justify-center transition-all ${
+                      className={`flex-1 h-6 rounded-md font-mono text-xs font-bold flex items-center justify-center transition-all ${
                         isCurrent
                           ? 'bg-[#E9F9EF] text-[#1E1B16] border-[2.5px] border-[#2E9E5B] shadow-xs'
                           : past
@@ -2148,23 +2187,23 @@ export default function CellQuest() {
             </div>
 
             {/* Question Card with Pixel peeking over top-left */}
-            <div className="relative pt-8">
+            <div className="relative pt-2">
               {/* Mascot + Speech Bubble */}
-              <div className="flex items-end gap-2.5 pl-3 -mb-3 relative z-20">
+              <div key={`cat-${currentQuestion.id}`} className="cq-cat-enter flex items-end gap-2.5 pl-3 -mb-3 relative z-20">
                 <PixelCat
                   mood={quizMood}
                   streak={state.streak}
                   urgent={!state.answered && state.timeLeft <= 5}
-                  size={68}
+                  size={52}
                 />
-                <div className="mb-3 px-3 py-1.5 rounded-xl rounded-bl-xs bg-white border-2 border-[#1E1B16] text-xs sm:text-sm font-semibold text-[#1E1B16] shadow-xs max-w-[260px] sm:max-w-sm">
+                <div className="mb-2 px-3 py-1 rounded-xl rounded-bl-xs bg-white border-2 border-[#1E1B16] text-xs sm:text-sm font-semibold text-[#1E1B16] shadow-xs max-w-[260px] sm:max-w-sm">
                   {mascotSpeech}
                 </div>
               </div>
 
               <div
                 key={currentQuestion.id}
-                className={`cq-card-enter bg-white rounded-2xl border-2 border-[#E8E1D5] shadow-sm p-5 sm:p-6 space-y-5 ${
+                className={`cq-card-enter bg-white rounded-2xl border-2 border-[#E8E1D5] shadow-sm p-4 space-y-3 ${
                   state.answered
                     ? state.answered.isCorrect
                       ? 'cq-pulse-green border-[#2E9E5B]'
@@ -2182,23 +2221,29 @@ export default function CellQuest() {
                   </span>
                 </div>
 
-                {/* Prompt */}
-                <h2 className="cq-display text-xl sm:text-2xl font-extrabold text-[#1E1B16] leading-snug">
-                  <RichText text={currentQuestion.prompt} />
-                </h2>
+                {/* Side-by-side: Prompt + Visual on left, Answer + Feedback on right */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                  <div className="space-y-3">
+                    {/* Prompt */}
+                    <h2 className="cq-display text-lg sm:text-xl font-extrabold text-[#1E1B16] leading-snug">
+                      <RichText text={currentQuestion.prompt} />
+                    </h2>
 
-                {/* Optional Mini-Grid Visual (Static or Interactive) */}
-                {currentQuestion.visual && (
-                  <MiniGrid
-                    visual={currentQuestion.visual}
-                    interactive={currentQuestion.type === 'cellclick'}
-                    selectedCells={selectedCells}
-                    onToggleCell={handleToggleCell}
-                    disabled={Boolean(state.answered)}
-                    correctAnswer={currentQuestion.correctAnswer}
-                    showResult={Boolean(state.answered)}
-                  />
-                )}
+                    {/* Optional Mini-Grid Visual (Static or Interactive) */}
+                    {currentQuestion.visual && (
+                      <MiniGrid
+                        visual={currentQuestion.visual}
+                        interactive={currentQuestion.type === 'cellclick'}
+                        selectedCells={selectedCells}
+                        onToggleCell={handleToggleCell}
+                        disabled={Boolean(state.answered)}
+                        correctAnswer={currentQuestion.correctAnswer}
+                        showResult={Boolean(state.answered)}
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
 
                 {/* Answer Area by Question Type */}
                 {currentQuestion.type === 'mcq' && (
@@ -2392,6 +2437,8 @@ export default function CellQuest() {
                     </button>
                   </div>
                 )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
